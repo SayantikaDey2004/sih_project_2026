@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: geo-rakshak-api
+    env: python
+    region: singapore # or any preferred region
+    buildCommand: pip install -r Backend/requirements.txt && pip install -r Ml_models/requirements.txt
+    startCommand: uvicorn Backend.main:app --host 0.0.0.0 --port 10000
+    envVars:
+      - key: PORT
+        value: "10000"
+      - key: PYTHON_VERSION
+        value: "3.11.0" # Specify Python version to ensure compatibility
+      - key: mongo_db
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
