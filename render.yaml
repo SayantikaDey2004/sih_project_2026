@@ -2,6 +2,7 @@ services:
   - type: web
     name: geo-rakshak-api
     env: python
+    plan: free
     region: singapore # or any preferred region
     buildCommand: pip install -r Backend/requirements.txt && pip install -r Ml_models/requirements.txt
     startCommand: uvicorn Backend.main:app --host 0.0.0.0 --port 10000
