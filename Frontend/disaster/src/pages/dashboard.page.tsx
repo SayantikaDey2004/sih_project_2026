@@ -17,6 +17,7 @@ import { submitIncidentReport } from "../services/incident.service";
 import { sendSOS } from "../services/sos.service";
 import { getCurrentUser } from "../services/auth.service";
 import { AIPredictionButton } from "../components/dashboard/AIPredictionButton";
+import { getCurrentCoordinates } from "../utils/location";
 
 export default function DisasterDashboard() {
   const navigate = useNavigate();
@@ -38,13 +39,17 @@ export default function DisasterDashboard() {
           setError(null);
         }
 
+        // 1. Get real GPS coordinates first to avoid Singapore fallback
+        const coords = await getCurrentCoordinates();
+        const effectiveLocation = coords || authUser?.location || undefined;
+
         // Connect main dashboard, @dashboard_router.get("/weather"), @dashboard_router.get("/earth_quakes"), @dashboard_router.get("/diseases"), and /location
         const [baseData, weatherData, earthquakesData, locationData, diseaseData] =
           await Promise.all([
-            fetchDashboard(),
+            fetchDashboard(effectiveLocation),
             fetchLiveWeather(),
             fetchLiveEarthquakes(),
-            fetchLiveLocation(),
+            fetchLiveLocation(effectiveLocation),
             fetchLiveDiseases(),
           ]);
 
@@ -261,6 +266,13 @@ export default function DisasterDashboard() {
     );
   }
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 17) return "Good afternoon";
+    return "Good evening";
+  };
+
   return (
     <DashboardLayout
       user={dashboard.user}
@@ -273,11 +285,11 @@ export default function DisasterDashboard() {
         <div className="mb-6 flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
           <div>
             <h1 className="font-display text-3xl font-bold tracking-tight text-[#F4EFE4] sm:text-4xl">
-              Good morning, {dashboard.user.name.split(" ")[0]}
+              {getGreeting()}, {dashboard.user.name.split(" ")[0]}
             </h1>
             <div className="mt-1.5 flex flex-wrap items-center gap-2.5 text-[13px] text-[#8AA68F]">
               <span>
-                📍 {dashboard.location.name} — {dashboard.location.region}
+                📍 {dashboard.location.name === "Singapore" ? "Local Sector" : dashboard.location.name} — {dashboard.location.region}
               </span>
               <span>•</span>
               <span className="inline-flex items-center gap-1.5 text-xs font-medium text-[#B7CBB2]">

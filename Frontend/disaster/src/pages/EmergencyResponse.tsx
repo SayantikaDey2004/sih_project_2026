@@ -11,6 +11,7 @@ import { fetchLiveLocation } from "../services/dashboard.service";
 import bg2Image from "../assets/bg2.jpg";
 import { DashboardLayout } from "../components/dashboard/DashboardLayout";
 import { getCurrentUser } from "../services/auth.service";
+import { getCurrentCoordinates } from "../utils/location";
 
 export default function EmergencyResponse() {
   const user = getCurrentUser();
@@ -32,10 +33,12 @@ export default function EmergencyResponse() {
       try {
         setIsLoading(true);
         // Get live location first
-        const locData = await fetchLiveLocation();
-        const detectedLoc = user?.location || locData?.city || locData?.name;
+        const coords = await getCurrentCoordinates();
+        const locData = await fetchLiveLocation(coords || undefined);
+        const detectedLoc = coords || user?.location || locData?.city || locData?.name;
         if (detectedLoc && active) {
-          setUserLocationName(detectedLoc);
+          const finalName = detectedLoc.includes(",") ? (locData?.city || "Local Sector") : detectedLoc;
+          setUserLocationName(finalName === "Singapore" ? "Local Sector" : finalName);
         }
 
         // Fetch location-aware emergency response

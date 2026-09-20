@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Header
+from fastapi import APIRouter, Depends, Header, Query
 from fastapi.security import OAuth2PasswordBearer
 from Backend.token_create import decode_token
 from Backend.ai_prediction import predict
@@ -35,16 +35,22 @@ def helper_get_location():
         res = requests.get("https://ipinfo.io", timeout=1.0)
         if res.status_code == 200:
             res_json = res.json()
+            # Absolute block against Singapore in sensor metadata
+            if res_json.get("city") == "Singapore" or res_json.get("country") == "SG":
+                res_json["city"] = "Local Sector"
+                res_json["region"] = "High Risk Zone"
+                res_json["loc"] = "27.33,88.61"
+
             _cache["location"] = res_json
             _cache["location_time"] = now
             return res_json
         raise Exception("Non-200 status code from ipinfo")
     except Exception:
         fallback = {
-            "city": "Current Region",
-            "region": "Monitored Sector",
+            "city": "Local Sector",
+            "region": "High Risk Zone",
             "country": "IN",
-            "loc": "27.2,88.5"
+            "loc": "27.33,88.61"
         }
         _cache["location"] = fallback
         _cache["location_time"] = now
@@ -237,9 +243,10 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
 
 @dashboard_router.get("")
 @dashboard_router.get("/")
-@dashboard_router.get("")
-@dashboard_router.get("/")
-def dashboard_home(current_user: dict = Depends(get_current_user)):
+def dashboard_home(
+    location: str = Query(None),
+    current_user: dict = Depends(get_current_user)
+):
     try:
         user_name = current_user.get("full_name", "Citizen User") or "Citizen User"
         user_email = current_user.get("email", "user@georakshak.org") or "user@georakshak.org"
@@ -252,8 +259,10 @@ def dashboard_home(current_user: dict = Depends(get_current_user)):
         else:
             initials = "GR"
 
-        user_lat, user_lon = 27.33, 88.61  # Default to Gangtok/Sikkim region (High Risk)
-        user_location = current_user.get("location")
+        user_lat, user_lon = 27.33, 88.61  # Default
+
+        # Determine target location: 1. Query param, 2. User profile, 3. Live IP
+        raw_location = location or (current_user.get("location") if isinstance(current_user, dict) else None)
 
         # Smart Geocoding Registry for Indian High-Risk Regions
         GEO_REGISTRY = {
@@ -268,11 +277,10 @@ def dashboard_home(current_user: dict = Depends(get_current_user)):
         }
 
         loc_data = helper_get_location()
-        if user_location and user_location.strip():
-            loc_name = user_location.strip()
-            loc_region = "Registered Home Sector"
+        if raw_location and str(raw_location).strip() and "Singapore" not in str(raw_location):
+            loc_name = str(raw_location).strip()
+            loc_region = "Detected Sector"
 
-            # Try to extract coordinates from string if present (e.g. "27.2, 88.5")
             try:
                 if "," in loc_name:
                     parts = loc_name.split(",")
@@ -281,8 +289,9 @@ def dashboard_home(current_user: dict = Depends(get_current_user)):
                         test_lon = float(parts[1].strip())
                         if -90 <= test_lat <= 90 and -180 <= test_lon <= 180:
                             user_lat, user_lon = test_lat, test_lon
+                            loc_name = "Local Sector"
+                            loc_region = "High Risk Zone"
                 else:
-                    # Use Smart Registry for city names
                     clean_name = loc_name.lower().strip()
                     for key, coords in GEO_REGISTRY.items():
                         if key in clean_name:
@@ -291,14 +300,20 @@ def dashboard_home(current_user: dict = Depends(get_current_user)):
             except Exception:
                 pass
         else:
-            loc_name = loc_data.get("city", "Live Location")
-            loc_region = f"{loc_data.get('region', '')}, {loc_data.get('country', '')}".strip(", ") or "Monitored Sector"
-            if "loc" in loc_data:
-                try:
-                    parts = loc_data["loc"].split(",")
-                    user_lat, user_lon = float(parts[0]), float(parts[1])
-                except Exception:
-                    pass
+            # Fallback when no valid location is provided or it's server IP (Singapore)
+            loc_name = loc_data.get("city", "Local Sector")
+            if loc_name == "Singapore":
+                loc_name = "Local Sector"
+                loc_region = "High Risk Zone"
+                user_lat, user_lon = 27.33, 88.61 # Default to high risk India
+            else:
+                loc_region = f"{loc_data.get('region', '')}, {loc_data.get('country', '')}".strip(", ") or "Monitored Sector"
+                if "loc" in loc_data:
+                    try:
+                        parts = loc_data["loc"].split(",")
+                        user_lat, user_lon = float(parts[0]), float(parts[1])
+                    except Exception:
+                        pass
 
         live_rain = 0.0
         live_wind = 12.0

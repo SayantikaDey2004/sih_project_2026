@@ -222,3 +222,9 @@ chroma_db/
 Ml_models/mlartifacts/
 
 chroma_db
+.gradle_user_home/ 
+.gradle/ 
+build/ 
+build/ 
+.idea/ 
+Backend/.venv/ 

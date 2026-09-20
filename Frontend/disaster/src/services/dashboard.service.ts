@@ -33,9 +33,14 @@ export interface LiveEarthquakesResponse {
 /**
  * Fetch base dashboard: @dashboard_router.get("") -> /api/dashboard
  */
-export const fetchDashboard = async (): Promise<Dashboard> => {
+export const fetchDashboard = async (location?: string): Promise<Dashboard> => {
   const token = localStorage.getItem("geo-rakshak:access-token");
-  const response = await fetch(`${API_BASE_URL}/api/dashboard`, {
+  const url = new URL(`${API_BASE_URL}/api/dashboard`);
+  if (location) {
+    url.searchParams.append("location", location);
+  }
+
+  const response = await fetch(url.toString(), {
     headers: {
       Accept: "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -102,9 +107,13 @@ export interface LiveLocationResponse {
 /**
  * Fetch live user location coordinates: @app.get("/location") -> /location
  */
-export const fetchLiveLocation = async (): Promise<LiveLocationResponse> => {
+export const fetchLiveLocation = async (location?: string): Promise<LiveLocationResponse> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/location`, {
+    const url = new URL(`${API_BASE_URL}/location`);
+    if (location) {
+      url.searchParams.append("location", location);
+    }
+    const response = await fetch(url.toString(), {
       headers: { Accept: "application/json" },
     });
     if (!response.ok) return {};

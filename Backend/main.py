@@ -257,12 +257,46 @@ async def notify_disaster(data: dict):
 
 
 @app.get("/location")
-def get_user_location():
+def get_user_location(location: str = None):
+    # If a location/coord is provided, echo it back instead of using server IP
+    if location and str(location).strip():
+        loc_str = str(location).strip()
+        if "," in loc_str:
+            # It's likely coordinates
+            return {
+                "location": loc_str,
+                "city": "Detected Location",
+                "region": "Monitored Zone",
+                "country": "IN",
+                "name": "Live Location",
+                "full_region": "Active Monitoring"
+            }
+        return {
+            "location": "",
+            "city": loc_str,
+            "region": "Selected Region",
+            "country": "IN",
+            "name": loc_str,
+            "full_region": loc_str
+        }
+
     try:
         response = requests.get("https://ipinfo.io", timeout=5)
         data = response.json()
-        location = data.get("loc", "")
         city = data.get("city", "")
+
+        # Prevent "Singapore" fallback on Render servers
+        if city == "Singapore" or data.get("country") == "SG":
+            return {
+                "location": "27.33,88.61",
+                "city": "Local Sector",
+                "region": "Monitored Zone",
+                "country": "IN",
+                "name": "Local Sector",
+                "full_region": "High Risk Zone"
+            }
+
+        location = data.get("loc", "")
         region = data.get("region", "")
         country = data.get("country", "")
         return {
@@ -275,12 +309,12 @@ def get_user_location():
         }
     except Exception:
         return {
-            "location": "22.5626,88.3630",
-            "city": "Current Location",
+            "location": "27.33,88.61",
+            "city": "Local Sector",
             "region": "Monitored Zone",
             "country": "IN",
-            "name": "Current Location",
-            "full_region": "Monitored Zone"
+            "name": "Local Sector",
+            "full_region": "High Risk Zone"
         }
 
 @app.post("/logout")
