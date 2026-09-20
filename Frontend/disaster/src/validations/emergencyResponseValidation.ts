@@ -55,6 +55,8 @@ export const helpEntrySchema = z.object({
 });
 
 export const emergencyResponseSchema = z.object({
+  user_location: z.string().optional(),
+  network_location: z.string().optional(),
   incidents: z.array(incidentSchema),
   villages: z.array(villageSchema),
   infrastructure: z.array(infrastructureSchema),
