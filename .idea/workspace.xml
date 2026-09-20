@@ -9,15 +9,16 @@
       <change beforePath="$PROJECT_DIR$/Backend/dashboardfile.py" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/dashboardfile.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Backend/emergency-response.py" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/emergency-response.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Backend/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/disaster-native/src/screens/dashboard/DashboardScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/screens/dashboard/DashboardScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/disaster-native/src/screens/emergency/EmergencyResponseScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/screens/emergency/EmergencyResponseScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/disaster-native/src/screens/profile/ProfileScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/screens/profile/ProfileScreen.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Frontend/disaster/android/app/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/disaster/android/app/build.gradle" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Frontend/disaster/android/app/capacitor.build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/disaster/android/app/capacitor.build.gradle" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Frontend/disaster/android/capacitor.settings.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/disaster/android/capacitor.settings.gradle" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Frontend/disaster/android/gradle.properties" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/disaster/android/gradle.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Frontend/disaster/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/disaster/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Frontend/disaster/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/disaster/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/disaster/src/components/profile/AlertAreaCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/disaster/src/components/profile/AlertAreaCard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/disaster/src/components/profile/PersonalInformationCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/disaster/src/components/profile/PersonalInformationCard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/disaster/src/components/profile/ProfileSummaryCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/disaster/src/components/profile/ProfileSummaryCard.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Frontend/disaster/src/pages/EmergencyResponse.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/disaster/src/pages/EmergencyResponse.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Frontend/disaster/src/pages/dashboard.page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/disaster/src/pages/dashboard.page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Frontend/disaster/src/services/dashboard.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/disaster/src/services/dashboard.service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/disaster/src/pages/profile.page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/disaster/src/pages/profile.page.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

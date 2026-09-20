@@ -5,6 +5,8 @@ import {
 } from 'react-native';
 import { Colors } from '../../theme/colors';
 import { getCurrentUser } from '../../services/auth.service';
+import { fetchLiveLocation } from '../../services/dashboard.service';
+import * as Location from 'expo-location';
 import { styles } from './EmergencyResponseScreen.styles';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -65,7 +67,78 @@ export default function EmergencyResponseScreen() {
   const load = useCallback(async (isRefresh = false) => {
     try {
       if (!isRefresh) { setIsLoading(true); setError(null); }
+
+      // 1. Resolve Location Name
+      let resolvedLoc = location;
+      const coordRegex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
+      const genericPlaceholders = ["Current Location", "Registered Home Sector", "Local Sector", "Live Location", "Monitored Zone"];
+      const isGeneric = (name: string) => !name || genericPlaceholders.some(p => name.includes(p));
+
+      // Try reverse geocoding if it's a coordinate or generic
+      if (coordRegex.test(resolvedLoc) || isGeneric(resolvedLoc)) {
+        try {
+          const { status } = await Location.requestForegroundPermissionsAsync();
+          let lat: number | null = null;
+          let lng: number | null = null;
+
+          if (coordRegex.test(resolvedLoc)) {
+            const parts = resolvedLoc.split(',').map(s => parseFloat(s.trim()));
+            lat = parts[0]; lng = parts[1];
+          }
+
+          if (lat !== null && lng !== null) {
+            const addresses = await Location.reverseGeocodeAsync({ latitude: lat, longitude: lng });
+            if (addresses && addresses.length > 0) {
+              const addr = addresses[0];
+              resolvedLoc = addr.city || addr.district || addr.region || addr.subregion || addr.name || resolvedLoc;
+            }
+          }
+        } catch (geoErr) {
+          console.warn("Emergency Native geocoding failed:", geoErr);
+        }
+      }
+
+      // IP-based fallback if still generic/coordinate
+      if (coordRegex.test(resolvedLoc) || isGeneric(resolvedLoc)) {
+        const liveLoc = await fetchLiveLocation().catch(() => null);
+        if (liveLoc?.city || liveLoc?.name) {
+          resolvedLoc = liveLoc.city || liveLoc.name || resolvedLoc;
+        }
+      }
+
+      if (resolvedLoc !== location) setLocation(resolvedLoc);
+
       const d = await fetchEmergencyResponse(location);
+
+      // Resolve coordinates in lists
+      if (d) {
+        const resolveLoc = async (loc: string) => {
+          const trimmed = (loc || "").trim();
+          if (!trimmed || !coordRegex.test(trimmed)) return loc;
+          try {
+            const [lat, lng] = trimmed.split(',').map(s => parseFloat(s.trim()));
+            if (!isNaN(lat) && !isNaN(lng)) {
+              const addresses = await Location.reverseGeocodeAsync({ latitude: lat, longitude: lng });
+              if (addresses && addresses.length > 0) {
+                const addr = addresses[0];
+                return addr.city || addr.district || addr.region || addr.subregion || addr.name || loc;
+              }
+            }
+          } catch {}
+          return loc;
+        };
+
+        const [resolvedIncidents, resolvedInfra, resolvedVillages] = await Promise.all([
+          Promise.all(d.incidents.map(async inc => ({ ...inc, location: await resolveLoc(inc.location) }))),
+          Promise.all(d.infrastructure.map(async inf => ({ ...inf, location: await resolveLoc(inf.location) }))),
+          Promise.all(d.villages.map(async v => ({ ...v, name: await resolveLoc(v.name) })))
+        ]);
+
+        d.incidents = resolvedIncidents;
+        d.infrastructure = resolvedInfra;
+        d.villages = resolvedVillages;
+      }
+
       setData(d);
     } catch (err) {
       if (!isRefresh) setError(err instanceof Error ? err.message : 'Failed to load emergency data');

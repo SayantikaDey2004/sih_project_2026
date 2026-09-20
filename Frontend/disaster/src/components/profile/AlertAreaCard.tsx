@@ -4,10 +4,11 @@ const COORDINATE_PATTERN = /^(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)$/;
 
 interface AlertAreaCardProps {
   user: StoredUser;
+  resolvedLocation?: string;
 }
 
-export function AlertAreaCard({ user }: AlertAreaCardProps) {
-  const location = user.location.trim();
+export function AlertAreaCard({ user, resolvedLocation }: AlertAreaCardProps) {
+  const location = (resolvedLocation || user.location).trim();
   if (!location) return null;
 
   const coordinateMatch = location.match(COORDINATE_PATTERN);

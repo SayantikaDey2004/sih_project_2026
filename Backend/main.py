@@ -57,6 +57,42 @@ app.include_router(govt_router)
 async def log_requests(request: Request, call_next):
     print(f"Incoming request: {request.method} {request.url}")
     response = await call_next(request)
+
+    # Global Singapore Scrubbing Middleware (More aggressive)
+    content_type = response.headers.get("content-type", "")
+    if "application/json" in content_type:
+        try:
+            body = b""
+            async for chunk in response.body_iterator:
+                body += chunk
+
+            decoded_body = body.decode("utf-8")
+            lower_body = decoded_body.lower()
+            if "singapore" in lower_body:
+                print("DEBUG: Nuclear scrubbing 'Singapore' from response")
+                import re
+                # Replace any instance of "Singapore" (case-insensitive) with "Local Sector"
+                scrubbed_body = re.sub(r'singapore', 'Local Sector', decoded_body, flags=re.IGNORECASE)
+                # Specifically fix the country code if it leaked through
+                scrubbed_body = re.sub(r'"country":\s*"SG"', '"country": "IN"', scrubbed_body)
+
+                return Response(
+                    content=scrubbed_body,
+                    status_code=response.status_code,
+                    headers=dict(response.headers),
+                    media_type=content_type
+                )
+
+            return Response(
+                content=body,
+                status_code=response.status_code,
+                headers=dict(response.headers),
+                media_type=content_type
+            )
+        except Exception as e:
+            print(f"Middleware Error: {e}")
+            return response
+
     print(f"Response status: {response.status_code}")
     return response
 

@@ -2,6 +2,7 @@ import type { StoredUser } from "../../@types/interface/auth";
 
 interface ProfileSummaryCardProps {
   user: StoredUser;
+  resolvedLocation?: string;
 }
 
 function getInitials(name: string): string {
@@ -11,8 +12,9 @@ function getInitials(name: string): string {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-export function ProfileSummaryCard({ user }: ProfileSummaryCardProps) {
+export function ProfileSummaryCard({ user, resolvedLocation }: ProfileSummaryCardProps) {
   const displayName = user.name.trim() || user.email;
+  const displayLocation = resolvedLocation || user.location;
 
   return (
     <div className="rounded-2xl border border-[#223B29] bg-[#0F1D14] p-6 shadow-[0_8px_24px_rgba(0,0,0,0.25)] sm:p-7">
@@ -25,10 +27,10 @@ export function ProfileSummaryCard({ user }: ProfileSummaryCardProps) {
         </div>
         <div className="min-w-0">
           <h2 className="truncate text-lg font-semibold text-cream">{displayName}</h2>
-          {user.location.trim() && (
-            <p className="mt-1 flex items-center gap-1.5 text-sm text-moss">
+          {displayLocation.trim() && (
+            <p className="mt-1 flex items-center gap-1.5 text-sm text-[#8AA68F]">
               <span aria-hidden="true">📍</span>
-              <span className="truncate">{user.location}</span>
+              <span className="truncate">{displayLocation}</span>
             </p>
           )}
         </div>

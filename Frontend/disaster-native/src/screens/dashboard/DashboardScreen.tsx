@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
+import * as Location from 'expo-location';
 import { Colors } from '../../theme/colors';
 import {
   fetchDashboard, fetchLiveWeather, fetchLiveEarthquakes,
@@ -43,7 +44,7 @@ export default function DashboardScreen() {
 
   useEffect(() => {
     getCurrentUser().then((u) => {
-      if (u && u.name && u.name.toLowerCase().trim() !== 'citizen') {
+      if (u && u.name) {
         setUserName(u.name.split(' ')[0]);
       }
     });
@@ -77,9 +78,9 @@ export default function DashboardScreen() {
         },
       };
 
-      // Set user name from dashboard if not already set or is Citizen
+      // Set user name from dashboard if not already set
       const dashUser = baseData.user?.name || '';
-      if (dashUser && dashUser.toLowerCase().trim() !== 'citizen' && dashUser.toLowerCase().trim() !== 'user') {
+      if (dashUser && !userName) {
         setUserName(dashUser.split(' ')[0]);
       }
 
@@ -109,16 +110,56 @@ export default function DashboardScreen() {
         }
       }
 
-      if (locationData?.name || locationData?.city) {
-        const locCity = locationData.city || locationData.name || merged.location?.name || "Local Sector";
-        const locRegion = locationData.full_region || locationData.region || merged.location?.region || "Monitored Zone";
-        if (merged.location) {
-          merged.location.name = locCity;
-          merged.location.region = locRegion;
+      // Priority Logic: Use signup location from baseData/backend.
+      // If the location is raw coordinates (from GPS signup), reverse geocode it for display name.
+      const signupLocName = (merged.location?.name || "").trim();
+      const signupLocRegion = (merged.location?.region || "").trim();
+      const weatherLoc = (merged.weather?.location || "").trim();
+
+      // Detection flags
+      const coordRegex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
+      const isCoordinate = coordRegex.test(signupLocName);
+      const genericPlaceholders = ["Current Location", "Registered Home Sector", "Local Sector", "Live Location", "Monitored Zone"];
+      const isGeneric = (name: string) => !name || genericPlaceholders.some(p => name.includes(p));
+
+      if (isCoordinate) {
+        try {
+          await Location.requestForegroundPermissionsAsync();
+          const [lat, lng] = signupLocName.split(',').map(s => parseFloat(s.trim()));
+
+          if (!isNaN(lat) && !isNaN(lng)) {
+            const addresses = await Location.reverseGeocodeAsync({ latitude: lat, longitude: lng });
+            if (addresses && addresses.length > 0) {
+              const addr = addresses[0];
+              const readableCity = addr.city || addr.district || addr.region || addr.subregion || addr.name || "My Location";
+              const readableRegion = addr.region || addr.country || "Monitored Zone";
+              if (merged.location) {
+                merged.location.name = readableCity;
+                merged.location.region = readableRegion;
+              }
+              if (merged.weather) {
+                merged.weather.location = `${readableCity}, ${readableRegion}`;
+              }
+            }
+          }
+        } catch (geoErr) {
+          console.warn("Dashboard reverse geocoding failed:", geoErr);
         }
-        if (merged.weather) {
-          merged.weather.location = `${locCity}, ${locRegion}`;
-        }
+      }
+
+      // Final check: if we still have generic or coordinate-based names, try IP-based location fallback
+      const currentName = merged.location.name;
+      const currentRegion = merged.location.region;
+      const currentWeatherLoc = merged.weather.location;
+
+      if ((isCoordinate || isGeneric(currentName) || isGeneric(currentRegion) || isGeneric(currentWeatherLoc)) &&
+          (locationData?.city || locationData?.name)) {
+        const locCity = locationData.city || locationData.name || "Local Sector";
+        const locRegion = locationData.full_region || locationData.region || "Monitored Zone";
+
+        if (isCoordinate || isGeneric(currentName)) merged.location.name = locCity;
+        if (isGeneric(currentRegion)) merged.location.region = locRegion;
+        if (isGeneric(currentWeatherLoc)) merged.weather.location = `${locCity}, ${locRegion}`;
       }
       setDashboard(merged);
     } catch (err) {

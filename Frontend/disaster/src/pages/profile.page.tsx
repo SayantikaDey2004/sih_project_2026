@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { DashboardLayout } from "../components/dashboard/DashboardLayout";
 import { ProfileSummaryCard } from "../components/profile/ProfileSummaryCard";
@@ -16,10 +16,67 @@ function getInitials(name: string): string {
 export default function Profile() {
   const navigate = useNavigate();
   const user = getCurrentUser();
+  const [resolvedLocation, setResolvedLocation] = useState<string>("");
 
   // No active session — send them back to log in rather than showing an empty page.
   useEffect(() => {
-    if (!user) navigate("/login", { replace: true });
+    if (!user) {
+      navigate("/login", { replace: true });
+      return;
+    }
+
+    const resolveLocation = async () => {
+      const signupLoc = (user.location || "").trim();
+      const coordRegex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
+      const genericPlaceholders = ["Current Location", "Registered Home Sector", "Local Sector", "Live Location", "Monitored Zone"];
+      const isGeneric = (name: string) => !name || genericPlaceholders.some(p => name.includes(p));
+
+      let targetLoc = signupLoc;
+
+      // 1. Get real GPS coordinates first if signup location is generic
+      if (isGeneric(targetLoc)) {
+        try {
+          const { getCurrentCoordinates } = await import("../utils/location");
+          const coords = await getCurrentCoordinates();
+          if (coords) targetLoc = coords;
+        } catch {}
+      }
+
+      // 2. IP Fallback if still generic
+      if (isGeneric(targetLoc)) {
+        try {
+          const { fetchLiveLocation } = await import("../services/dashboard.service");
+          const locData = await fetchLiveLocation();
+          if (locData?.location) {
+            targetLoc = locData.location;
+          } else if (locData?.city || locData?.name) {
+            const city = locData.city || locData.name || "";
+            const region = locData.full_region || locData.region || "";
+            setResolvedLocation(region ? `${city}, ${region}` : city);
+            return;
+          }
+        } catch {}
+      }
+
+      // 2. Nominatim lookup if coordinate or generic
+      if (coordRegex.test(targetLoc) || isGeneric(targetLoc)) {
+        try {
+          const [lat, lon] = targetLoc.split(",").map(s => s.trim());
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=10&accept-language=en`);
+          if (res.ok) {
+            const data = await res.json();
+            const city = data.address?.city || data.address?.town || data.address?.district || data.address?.suburb || targetLoc;
+            const region = data.address?.state || data.address?.county || "";
+            setResolvedLocation(region ? `${city}, ${region}` : city);
+            return;
+          }
+        } catch {}
+      }
+
+      setResolvedLocation(targetLoc || "Local Sector");
+    };
+
+    void resolveLocation();
   }, [user, navigate]);
 
   const handleLogout = async () => {
@@ -57,9 +114,9 @@ export default function Profile() {
           </div>
 
           <div className="space-y-5">
-            <ProfileSummaryCard user={user} />
-            <PersonalInformationCard user={user} />
-            <AlertAreaCard user={user} />
+            <ProfileSummaryCard user={user} resolvedLocation={resolvedLocation} />
+            <PersonalInformationCard user={user} resolvedLocation={resolvedLocation} />
+            <AlertAreaCard user={user} resolvedLocation={resolvedLocation} />
           </div>
         </div>
       </div>

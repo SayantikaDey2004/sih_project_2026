@@ -7,17 +7,20 @@ import random
 
 router = APIRouter(prefix="/api/emergency-response", tags=["Emergency Response"])
 
-# Smart Geocoding Registry for Indian High-Risk Regions
+# Smart Geocoding Registry for Indian Cities
 GEO_REGISTRY = {
-    "sikkim": (27.33, 88.61),
-    "gangtok": (27.33, 88.61),
-    "darjeeling": (27.04, 88.26),
-    "guwahati": (26.14, 91.73),
-    "assam": (26.20, 92.93),
-    "uttarakhand": (30.06, 79.01),
-    "himachal": (31.10, 77.17),
-    "wayanad": (11.68, 76.13),
-    "kerala": (10.85, 76.27)
+    "sikkim": (27.33, 88.61), "gangtok": (27.33, 88.61),
+    "darjeeling": (27.04, 88.26), "guwahati": (26.14, 91.73),
+    "assam": (26.20, 92.93), "uttarakhand": (30.06, 79.01),
+    "himachal": (31.10, 77.17), "wayanad": (11.68, 76.13),
+    "shillong": (25.57, 91.88), "itanagar": (27.08, 93.60),
+    "kohima": (25.67, 94.11), "aizawl": (23.73, 92.71),
+    "imphal": (24.81, 93.93), "agartala": (23.83, 91.28),
+    "dehradun": (30.31, 78.03), "shimla": (31.10, 77.17),
+    "mumbai": (19.07, 72.87), "delhi": (28.61, 77.20),
+    "bangalore": (12.97, 77.59), "kolkata": (22.57, 88.36),
+    "chennai": (13.08, 80.27), "pune": (18.52, 73.85),
+    "hyderabad": (17.38, 78.48), "ahmedabad": (23.02, 72.57)
 }
 
 def get_weather_for_loc(lat: float, lon: float):
@@ -49,41 +52,35 @@ def emergency_response(
         user_region = "Monitored Zone"
         user_lat, user_lon = 27.33, 88.61 # Default
 
-        if raw_location and isinstance(raw_location, str) and raw_location.strip():
-            parts = [p.strip() for p in raw_location.split(",") if p.strip()]
+        user_signup_loc = current_user.get("location") if current_user else None
 
-            # Check if these are raw coordinates (e.g. "27.33, 88.61")
+        # Priority Logic: 1. raw coords (for ML), 2. profile location (for display)
+        if raw_location and isinstance(raw_location, str) and "," in raw_location and "Singapore" not in raw_location:
             try:
+                parts = [p.strip() for p in raw_location.split(",") if p.strip()]
                 user_lat = float(parts[0])
                 user_lon = float(parts[1])
-                # Check registry first for nearby known cities if coordinates are provided
-                found_match = False
-                for key, coords in GEO_REGISTRY.items():
-                    if abs(coords[0] - user_lat) < 0.5 and abs(coords[1] - user_lon) < 0.5:
-                        user_city = key.capitalize()
-                        user_region = "Regional Sector"
-                        found_match = True
-                        break
+            except Exception: pass
+        elif user_signup_loc and user_signup_loc not in ["Local Sector", "Current Location", "Detected Area", "Active Sector"]:
+             clean_name = str(user_signup_loc).lower().strip()
+             for key, coords in GEO_REGISTRY.items():
+                if key in clean_name:
+                    user_lat, user_lon = coords
+                    break
 
-                if not found_match:
-                    user_city = f"Sector {user_lat:.2f}N"
-                    user_region = f"Zone {user_lon:.2f}E"
-            except (ValueError, IndexError):
-                user_city = parts[0]
-                user_region = parts[1] if len(parts) > 1 else "Regional Sector"
-                # Use Registry to find coordinates
-                clean_name = user_city.lower().strip()
-                for key, coords in GEO_REGISTRY.items():
-                    if key in clean_name:
-                        user_lat, user_lon = coords
-                        break
+        # Display Logic
+        if user_signup_loc and user_signup_loc not in ["Local Sector", "Current Location", "Detected Area", "Active Sector", "My Location"]:
+            user_city = user_signup_loc
+            user_region = "Regional Zone"
+        elif raw_location and "," not in str(raw_location):
+            user_city = str(raw_location)
+            user_region = "Detected Area"
         else:
             try:
-                res = requests.get("https://ipinfo.io", timeout=1.0)
+                res = requests.get("https://ipinfo.io", timeout=1.5)
                 if res.status_code == 200:
                     loc_data = res.json()
-                    # Hard block for Singapore server location
-                    if loc_data.get("city") == "Singapore" or loc_data.get("country") == "SG":
+                    if "Singapore" in loc_data.get("city", "") or loc_data.get("country") == "SG":
                         user_city = "Local Sector"
                         user_region = "High Risk Zone"
                         user_lat, user_lon = 27.33, 88.61
@@ -93,8 +90,7 @@ def emergency_response(
                         if "loc" in loc_data:
                             parts = loc_data["loc"].split(",")
                             user_lat, user_lon = float(parts[0]), float(parts[1])
-            except Exception:
-                pass
+            except Exception: pass
 
         # Fetch live weather for this specific location
         weather = get_weather_for_loc(user_lat, user_lon)

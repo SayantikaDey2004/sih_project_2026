@@ -18,6 +18,7 @@ import { sendSOS } from "../services/sos.service";
 import { getCurrentUser } from "../services/auth.service";
 import { AIPredictionButton } from "../components/dashboard/AIPredictionButton";
 import { getCurrentCoordinates } from "../utils/location";
+import { scrubSingapore, getDeviceGreeting } from "../utils/sanitizer";
 
 export default function DisasterDashboard() {
   const navigate = useNavigate();
@@ -124,12 +125,49 @@ export default function DisasterDashboard() {
         }
 
         // 3. Connect live location from backend /location
-        if (locationData?.name || locationData?.city) {
+        const signupLocName = (mergedDashboard.location.name || "").trim();
+        const signupLocRegion = (mergedDashboard.location.region || "").trim();
+        const weatherLoc = (mergedDashboard.weather.location || "").trim();
+
+        // Detection flags
+        const coordRegex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
+        const isCoordinate = coordRegex.test(signupLocName);
+        const genericPlaceholders = ["Current Location", "Local Sector", "Live Location", "Monitored Zone"];
+        const isGeneric = (name: string) => !name || genericPlaceholders.some(p => name.includes(p));
+
+        if ((isCoordinate || isGeneric(signupLocName) || isGeneric(signupLocRegion) || isGeneric(weatherLoc)) &&
+            (locationData?.city || locationData?.name)) {
           const locCity = locationData.city || locationData.name || mergedDashboard.location.name;
           const locRegion = locationData.full_region || locationData.region || mergedDashboard.location.region;
-          mergedDashboard.location.name = locCity;
-          mergedDashboard.location.region = locRegion;
-          mergedDashboard.weather.location = `${locCity}, ${locRegion}`;
+
+          if (isCoordinate || isGeneric(signupLocName)) mergedDashboard.location.name = locCity;
+          if (isGeneric(signupLocRegion)) mergedDashboard.location.region = locRegion;
+          if (isGeneric(weatherLoc) || isCoordinate) {
+            mergedDashboard.weather.location = `${locCity}, ${locRegion}`;
+          }
+        }
+
+        // 4. Online Geocoding Fallback if still coordinate/generic
+        if (coordRegex.test(mergedDashboard.location.name) || isGeneric(mergedDashboard.location.name)) {
+          const coordsToUse = isCoordinate ? signupLocName : locationData?.location;
+          if (coordsToUse && coordRegex.test(coordsToUse)) {
+            try {
+              const [lat, lon] = coordsToUse.split(",");
+              const geoRes = await fetch(
+                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=10&accept-language=en`
+              );
+              if (geoRes.ok) {
+                const geoData = await geoRes.json();
+                const city = geoData.address?.city || geoData.address?.town || geoData.address?.district || geoData.address?.suburb || "Local Sector";
+                const region = geoData.address?.state || geoData.address?.county || "Monitored Zone";
+                mergedDashboard.location.name = city;
+                mergedDashboard.location.region = region;
+                mergedDashboard.weather.location = `${city}, ${region}`;
+              }
+            } catch (err) {
+              console.warn("Nominatim reverse geocoding failed:", err);
+            }
+          }
         }
 
         if (locationData?.location) {
@@ -266,12 +304,6 @@ export default function DisasterDashboard() {
     );
   }
 
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return "Good morning";
-    if (hour < 17) return "Good afternoon";
-    return "Good evening";
-  };
 
   return (
     <DashboardLayout
@@ -285,11 +317,11 @@ export default function DisasterDashboard() {
         <div className="mb-6 flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
           <div>
             <h1 className="font-display text-3xl font-bold tracking-tight text-[#F4EFE4] sm:text-4xl">
-              {getGreeting()}, {dashboard.user.name.split(" ")[0]}
+              {getDeviceGreeting()}, {dashboard.user.name.split(" ")[0]}
             </h1>
             <div className="mt-1.5 flex flex-wrap items-center gap-2.5 text-[13px] text-[#8AA68F]">
               <span>
-                📍 {dashboard.location.name === "Singapore" ? "Local Sector" : dashboard.location.name} — {dashboard.location.region}
+                📍 {scrubSingapore(dashboard.location.name)} — {scrubSingapore(dashboard.location.region)}
               </span>
               <span>•</span>
               <span className="inline-flex items-center gap-1.5 text-xs font-medium text-[#B7CBB2]">

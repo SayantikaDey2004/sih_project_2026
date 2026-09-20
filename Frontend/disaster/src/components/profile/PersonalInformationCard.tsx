@@ -2,13 +2,15 @@ import type { StoredUser } from "../../@types/interface/auth";
 
 interface PersonalInformationCardProps {
   user: StoredUser;
+  resolvedLocation?: string;
 }
 
-export function PersonalInformationCard({ user }: PersonalInformationCardProps) {
+export function PersonalInformationCard({ user, resolvedLocation }: PersonalInformationCardProps) {
   const fields: Array<{ label: string; value: string }> = [
     { label: "Full Name", value: user.name },
     { label: "Email Address", value: user.email },
     { label: "Phone Number", value: user.phone },
+    { label: "Primary Location", value: resolvedLocation || user.location },
   ].filter((field) => field.value.trim().length > 0);
 
   return (

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Linking, ActivityIndicator } from 'react-native';
 import { Colors } from '../../theme/colors';
 import { getCurrentUser, logout, StoredUser } from '../../services/auth.service';
+import { fetchLiveLocation } from '../../services/dashboard.service';
+import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
 import { styles } from './ProfileScreen.styles';
 
@@ -9,9 +11,50 @@ export default function ProfileScreen() {
   const router = useRouter();
   const [user, setUser] = useState<StoredUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [resolvedLoc, setResolvedLoc] = useState('');
 
   useEffect(() => {
-    getCurrentUser().then((u) => { setUser(u); setLoading(false); });
+    getCurrentUser().then(async (u) => {
+      setUser(u);
+      setLoading(false);
+
+      if (u) {
+        let loc = (u.location || '').trim();
+        const coordRegex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
+        const genericPlaceholders = ["Current Location", "Registered Home Sector", "Local Sector", "Live Location", "Monitored Zone"];
+        const isGeneric = (name: string) => !name || genericPlaceholders.some(p => name.includes(p));
+
+        if (isGeneric(loc)) {
+          // Try to get live coordinates from device
+          try {
+            const { status } = await Location.requestForegroundPermissionsAsync();
+            if (status === 'granted') {
+              const pos = await Location.getCurrentPositionAsync({});
+              loc = `${pos.coords.latitude}, ${pos.coords.longitude}`;
+            }
+          } catch {}
+
+          // Fallback to IP if still generic
+          if (isGeneric(loc)) {
+            const live = await fetchLiveLocation().catch(() => null);
+            if (live?.location) loc = live.location;
+            else if (live?.city || live?.name) loc = live.city || live.name || loc;
+          }
+        }
+
+        if (coordRegex.test(loc)) {
+          try {
+            const [lat, lng] = loc.split(',').map(s => parseFloat(s.trim()));
+            const addresses = await Location.reverseGeocodeAsync({ latitude: lat, longitude: lng });
+            if (addresses && addresses.length > 0) {
+              const addr = addresses[0];
+              loc = addr.city || addr.district || addr.region || addr.subregion || addr.name || loc;
+            }
+          } catch {}
+        }
+        setResolvedLoc(loc || 'Local Sector');
+      }
+    });
   }, []);
 
   const handleLogout = async () => {
@@ -49,12 +92,12 @@ export default function ProfileScreen() {
           <Text style={styles.cardLabel}>Personal Information</Text>
           <InfoRow icon="✉" label="Email" value={user.email} />
           <InfoRow icon="📞" label="Phone" value={user.phone || 'Not set'} />
-          <InfoRow icon="📍" label="Location" value={user.location || 'Not set'} />
+          <InfoRow icon="📍" label="Location" value={resolvedLoc || user.location || 'Not set'} />
         </View>
 
         <View style={styles.card}>
           <Text style={styles.cardLabel}>Alert Area</Text>
-          <InfoRow icon="🌏" label="Monitoring Region" value={user.location || 'Guwahati, Assam'} />
+          <InfoRow icon="🌏" label="Monitoring Region" value={resolvedLoc || user.location || 'Guwahati, Assam'} />
           <InfoRow icon="📡" label="Alert Status" value="Active — Real-time monitoring" />
           <InfoRow icon="🔔" label="Notifications" value="SMS + App alerts enabled" />
         </View>

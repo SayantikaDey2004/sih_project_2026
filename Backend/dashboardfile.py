@@ -31,30 +31,36 @@ def helper_get_location():
     now = time.time()
     if _cache["location"] and (now - _cache["location_time"] < CACHE_TTL):
         return _cache["location"]
+
+    fallback = {
+        "city": "Local Sector",
+        "region": "High Risk Zone",
+        "country": "IN",
+        "loc": "27.33,88.61"
+    }
+
     try:
-        res = requests.get("https://ipinfo.io", timeout=1.0)
+        res = requests.get("https://ipinfo.io", timeout=2.0)
         if res.status_code == 200:
             res_json = res.json()
-            # Absolute block against Singapore in sensor metadata
-            if res_json.get("city") == "Singapore" or res_json.get("country") == "SG":
-                res_json["city"] = "Local Sector"
-                res_json["region"] = "High Risk Zone"
-                res_json["loc"] = "27.33,88.61"
+            city = str(res_json.get("city", ""))
+            country = str(res_json.get("country", ""))
+
+            # PARANOID BLOCK: If Singapore is detected anywhere, use fallback
+            if "Singapore" in city or country == "SG":
+                _cache["location"] = fallback
+                _cache["location_time"] = now
+                return fallback
 
             _cache["location"] = res_json
             _cache["location_time"] = now
             return res_json
-        raise Exception("Non-200 status code from ipinfo")
     except Exception:
-        fallback = {
-            "city": "Local Sector",
-            "region": "High Risk Zone",
-            "country": "IN",
-            "loc": "27.33,88.61"
-        }
-        _cache["location"] = fallback
-        _cache["location_time"] = now
-        return fallback
+        pass
+
+    _cache["location"] = fallback
+    _cache["location_time"] = now
+    return fallback
 
 @dashboard_router.get("/earth_quakes")
 def get_nearby_earthquakes(radius_km=500, min_magnitude=3.0):
@@ -264,56 +270,68 @@ def dashboard_home(
         # Determine target location: 1. Query param, 2. User profile, 3. Live IP
         raw_location = location or (current_user.get("location") if isinstance(current_user, dict) else None)
 
-        # Smart Geocoding Registry for Indian High-Risk Regions
+        # Smart Geocoding Registry for Indian Cities
         GEO_REGISTRY = {
-            "sikkim": (27.33, 88.61),
-            "gangtok": (27.33, 88.61),
-            "darjeeling": (27.04, 88.26),
-            "guwahati": (26.14, 91.73),
-            "assam": (26.20, 92.93),
-            "uttarakhand": (30.06, 79.01),
-            "himachal": (31.10, 77.17),
-            "wayanad": (11.68, 76.13)
+            "sikkim": (27.33, 88.61), "gangtok": (27.33, 88.61),
+            "darjeeling": (27.04, 88.26), "guwahati": (26.14, 91.73),
+            "assam": (26.20, 92.93), "uttarakhand": (30.06, 79.01),
+            "himachal": (31.10, 77.17), "wayanad": (11.68, 76.13),
+            "shillong": (25.57, 91.88), "itanagar": (27.08, 93.60),
+            "kohima": (25.67, 94.11), "aizawl": (23.73, 92.71),
+            "imphal": (24.81, 93.93), "agartala": (23.83, 91.28),
+            "dehradun": (30.31, 78.03), "shimla": (31.10, 77.17),
+            "mumbai": (19.07, 72.87), "delhi": (28.61, 77.20),
+            "bangalore": (12.97, 77.59), "kolkata": (22.57, 88.36),
+            "chennai": (13.08, 80.27), "pune": (18.52, 73.85),
+            "hyderabad": (17.38, 78.48), "ahmedabad": (23.02, 72.57)
         }
 
         loc_data = helper_get_location()
-        if raw_location and str(raw_location).strip() and "Singapore" not in str(raw_location):
-            loc_name = str(raw_location).strip()
-            loc_region = "Detected Sector"
+        print(f"DEBUG Dashboard: raw_location={raw_location}, user_location={current_user.get('location')}")
 
+        # Priority Logic for displaying the location NAME:
+        # 1. current_user profile location (The location they gave during signup) - HIGHEST PRIORITY
+        # 2. raw_location (GPS from device)
+        # 3. loc_data (IP geolocation fallback)
+
+        user_signup_loc = current_user.get("location") if current_user else None
+
+        # We still need coordinates for the ML models, so we calculate user_lat/user_lon
+        if raw_location and str(raw_location).strip() and "Singapore" not in str(raw_location):
+            loc_val = str(raw_location).strip()
             try:
-                if "," in loc_name:
-                    parts = loc_name.split(",")
-                    if len(parts) >= 2:
-                        test_lat = float(parts[0].strip())
-                        test_lon = float(parts[1].strip())
-                        if -90 <= test_lat <= 90 and -180 <= test_lon <= 180:
-                            user_lat, user_lon = test_lat, test_lon
-                            loc_name = "Local Sector"
-                            loc_region = "High Risk Zone"
+                if "," in loc_val:
+                    parts = loc_val.split(",")
+                    user_lat, user_lon = float(parts[0]), float(parts[1])
                 else:
-                    clean_name = loc_name.lower().strip()
+                    clean_name = loc_val.lower().strip()
                     for key, coords in GEO_REGISTRY.items():
                         if key in clean_name:
                             user_lat, user_lon = coords
                             break
-            except Exception:
-                pass
+            except Exception: pass
+        elif user_signup_loc and user_signup_loc not in ["Local Sector", "Current Location", "Detected Area", "Active Sector"]:
+            clean_name = str(user_signup_loc).lower().strip()
+            for key, coords in GEO_REGISTRY.items():
+                if key in clean_name:
+                    user_lat, user_lon = coords
+                    break
+
+        # Now decide what to show in the UI label (loc_name)
+        if user_signup_loc and user_signup_loc not in ["Local Sector", "Current Location", "Detected Area", "Active Sector", "My Location"]:
+            loc_name = user_signup_loc
+            loc_region = "Monitored Zone"
+        elif raw_location and "," not in str(raw_location):
+            loc_name = str(raw_location)
+            loc_region = "Detected Area"
         else:
-            # Fallback when no valid location is provided or it's server IP (Singapore)
             loc_name = loc_data.get("city", "Local Sector")
-            if loc_name == "Singapore":
+            if loc_name == "Singapore" or loc_data.get("country") == "SG":
                 loc_name = "Local Sector"
                 loc_region = "High Risk Zone"
-                user_lat, user_lon = 27.33, 88.61 # Default to high risk India
+                user_lat, user_lon = 27.33, 88.61
             else:
-                loc_region = f"{loc_data.get('region', '')}, {loc_data.get('country', '')}".strip(", ") or "Monitored Sector"
-                if "loc" in loc_data:
-                    try:
-                        parts = loc_data["loc"].split(",")
-                        user_lat, user_lon = float(parts[0]), float(parts[1])
-                    except Exception:
-                        pass
+                loc_region = "Regional Sector"
 
         live_rain = 0.0
         live_wind = 12.0
