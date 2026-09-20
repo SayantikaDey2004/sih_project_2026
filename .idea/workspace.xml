@@ -5,173 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5022a89e-8118-4faf-9dd3-b455dba72e5b" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.dockerignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/deviceManager.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/markdown.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Backend/database.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/.claude/settings.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/AGENTS.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/App.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/CLAUDE.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/LICENSE" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/app.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/app/(app)/_layout.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/app/(app)/ai-assistant.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/app/(app)/dashboard.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/app/(app)/emergency.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/app/(app)/landslide-risk.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/app/(app)/map.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/app/(app)/profile.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/app/_layout.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/app/govt/dashboard.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/app/govt/login.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/app/index.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/app/login.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/app/signup.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/assets/android-icon-background.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/assets/android-icon-foreground.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/assets/android-icon-monochrome.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/assets/favicon.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/assets/icon.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/assets/splash-icon.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/babel.config.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/index.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/package-lock.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/package.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/components/DisasterAlertBanner.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/components/IncidentReportForm.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/components/RiskSummary.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/components/SOSButton.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/components/ToastContainer.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/components/WeatherSnapshot.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/hooks/useDisasterWebSocket.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/hooks/useMapData.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/hooks/useToast.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/screens/ai-assistant/AIAssistantScreen.styles.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/screens/ai-assistant/AIAssistantScreen.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/screens/ai-assistant/index.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/screens/auth/LoginScreen.styles.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/screens/auth/LoginScreen.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/screens/auth/SignUpScreen.styles.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/screens/auth/SignUpScreen.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/screens/auth/index.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/screens/dashboard/DashboardScreen.styles.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/screens/dashboard/DashboardScreen.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/screens/dashboard/index.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/screens/emergency/EmergencyResponseScreen.styles.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/screens/emergency/EmergencyResponseScreen.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/screens/emergency/index.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/screens/govt/GovtDashboardScreen.styles.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/screens/govt/GovtDashboardScreen.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/screens/govt/GovtLoginScreen.styles.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/screens/govt/GovtLoginScreen.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/screens/govt/index.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/screens/index.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/screens/landing/LandingScreen.styles.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/screens/landing/LandingScreen.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/screens/landing/index.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/screens/landslide/LandslideRiskScreen.styles.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/screens/landslide/LandslideRiskScreen.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/screens/landslide/index.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/screens/map/RiskMapScreen.styles.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/screens/map/RiskMapScreen.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/screens/map/index.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/screens/profile/ProfileScreen.styles.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/screens/profile/ProfileScreen.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/screens/profile/index.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/services/auth.service.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/services/chat.service.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/services/dashboard.service.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/services/govtAuth.service.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/services/incident.service.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/services/landslideRisk.service.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/services/sos.service.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/theme/colors.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/theme/globalStyles.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/theme/index.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/theme/spacing.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/theme/typography.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/types/declarations.d.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster-native/tsconfig.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/app/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/app/build.gradle" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/app/capacitor.build.gradle" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/app/proguard-rules.pro" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/app/src/androidTest/java/com/getcapacitor/myapp/ExampleInstrumentedTest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/app/src/main/AndroidManifest.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/app/src/main/java/com/geo/rakshak/MainActivity.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/app/src/main/res/drawable-land-hdpi/splash.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/app/src/main/res/drawable-land-mdpi/splash.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/app/src/main/res/drawable-land-xhdpi/splash.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/app/src/main/res/drawable-land-xxhdpi/splash.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/app/src/main/res/drawable-land-xxxhdpi/splash.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/app/src/main/res/drawable-port-hdpi/splash.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/app/src/main/res/drawable-port-mdpi/splash.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/app/src/main/res/drawable-port-xhdpi/splash.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/app/src/main/res/drawable-port-xxhdpi/splash.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/app/src/main/res/drawable-port-xxxhdpi/splash.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/app/src/main/res/drawable-v24/ic_launcher_foreground.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/app/src/main/res/drawable/ic_launcher_background.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/app/src/main/res/drawable/splash.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/app/src/main/res/layout/activity_main.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/app/src/main/res/mipmap-hdpi/ic_launcher.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/app/src/main/res/mipmap-hdpi/ic_launcher_foreground.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/app/src/main/res/mipmap-hdpi/ic_launcher_round.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/app/src/main/res/mipmap-mdpi/ic_launcher.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/app/src/main/res/mipmap-mdpi/ic_launcher_foreground.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/app/src/main/res/mipmap-mdpi/ic_launcher_round.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/app/src/main/res/mipmap-xhdpi/ic_launcher.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/app/src/main/res/mipmap-xhdpi/ic_launcher_foreground.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/app/src/main/res/mipmap-xhdpi/ic_launcher_round.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/app/src/main/res/mipmap-xxhdpi/ic_launcher_foreground.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/app/src/main/res/values/ic_launcher_background.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/app/src/main/res/values/strings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/app/src/main/res/values/styles.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/app/src/main/res/xml/file_paths.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/app/src/test/java/com/getcapacitor/myapp/ExampleUnitTest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/build.gradle" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/capacitor.settings.gradle" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/gradle.properties" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/gradle/wrapper/gradle-wrapper.jar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/gradle/wrapper/gradle-wrapper.properties" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/gradlew" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/gradlew.bat" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/settings.gradle" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/android/variables.gradle" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Frontend/disaster/capacitor.config.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Ml_models/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/render.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Backend/Chat_Bot.py" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/Chat_Bot.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Backend/dashboardfile.py" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/dashboardfile.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Backend/emergency-response.py" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/emergency-response.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Backend/govt_routes.py" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/govt_routes.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Backend/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Frontend/disaster/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/disaster/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Frontend/disaster/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/disaster/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Frontend/disaster/src/App.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/disaster/src/App.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Frontend/disaster/src/components/dashboard/DashboardHeader.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/disaster/src/components/dashboard/DashboardHeader.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Frontend/disaster/src/components/dashboard/DashboardLayout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/disaster/src/components/dashboard/DashboardLayout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Frontend/disaster/src/components/dashboard/SOSButton.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/disaster/src/components/dashboard/SOSButton.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Frontend/disaster/src/components/signup/SignupForm.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/disaster/src/components/signup/SignupForm.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Frontend/disaster/src/pages/aiAnalysis.page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/disaster/src/pages/aiAnalysis.page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Frontend/disaster/src/pages/dashboard.page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/disaster/src/pages/dashboard.page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Frontend/disaster/src/services/chat.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/disaster/src/services/chat.service.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/IMPLEMENTATION_GUIDE.md" beforeDir="false" afterPath="$PROJECT_DIR$/IMPLEMENTATION_GUIDE.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Ml_models/rag_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/Ml_models/rag_model.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Ml_models/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/Ml_models/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -193,22 +27,22 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.cidr.known.project.marker": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.readMode.enableVisualFormatting": "true",
-    "cf.first.check.clang-format": "false",
-    "cidr.known.project.marker": "true",
-    "git-widget-placeholder": "main",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/sayan/OneDrive/Desktop/sih_project_2026",
-    "settings.editor.selected.configurable": "com.google.gct.login2.settings.GoogleLoginApplicationSettingsConfigurableProvider"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
+    &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
+    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/sayan/OneDrive/Desktop/sih_project_2026&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.google.gct.login2.settings.GoogleLoginApplicationSettingsConfigurableProvider&quot;
   }
-}]]></component>
+}</component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
       <changelist id="5022a89e-8118-4faf-9dd3-b455dba72e5b" name="Changes" comment="" />

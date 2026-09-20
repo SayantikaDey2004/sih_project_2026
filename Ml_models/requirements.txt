@@ -1,8 +1,5 @@
-scikit-learn
-pypdf
-requests
-pandas
-numpy
-joblib
-python-dotenv
-mlflow
+scikit-learn==1.6.0
+pandas==2.2.3
+numpy==2.2.1
+joblib==1.4.2
+pypdf==5.1.0
