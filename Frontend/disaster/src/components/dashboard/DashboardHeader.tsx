@@ -17,7 +17,10 @@ export function DashboardHeader({
   const navigate = useNavigate();
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[#223B29] bg-[rgba(15,29,20,0.85)] backdrop-blur-sm">
+    <header
+      className="sticky top-0 z-50 border-b border-[#223B29] bg-[rgba(15,29,20,0.85)] backdrop-blur-sm"
+      style={{ paddingTop: 'env(safe-area-inset-top)' }}
+    >
       <div className="flex items-center justify-between px-9 py-[14px] max-md:px-5 max-md:py-3">
         <div className="flex items-center gap-3">
           {/* Brand */}

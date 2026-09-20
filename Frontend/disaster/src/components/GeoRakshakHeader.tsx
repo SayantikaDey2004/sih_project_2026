@@ -46,7 +46,10 @@ export function GeoRakshakHeader({ activeItem }: GeoRakshakHeaderProps) {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[rgba(244,239,228,0.16)] bg-[rgba(14,31,23,0.92)] backdrop-blur-lg">
+    <header
+      className="sticky top-0 z-50 border-b border-[rgba(244,239,228,0.16)] bg-[rgba(14,31,23,0.92)] backdrop-blur-lg"
+      style={{ paddingTop: 'env(safe-area-inset-top)' }}
+    >
       <div className="mx-auto flex max-w-[1180px] items-center justify-between px-8 py-[18px] max-[520px]:px-5">
         <a href="#home" onClick={(event) => handleSectionClick(event, "home")}><Brand /></a>
         <nav className="hidden ml-auto items-center gap-[34px] min-[861px]:flex">

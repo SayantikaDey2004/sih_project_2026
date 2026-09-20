@@ -58,6 +58,8 @@ export interface FeedItem {
 }
 
 export interface EmergencyResponseData {
+  user_location?: string;
+  network_location?: string;
   incidents: Incident[];
   villages: Village[];
   infrastructure: Infrastructure[];

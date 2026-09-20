@@ -29,8 +29,8 @@ export default function GovtSignup() {
     <div className="relative min-h-screen w-full overflow-x-hidden bg-[#07140E]">
       <div className="absolute inset-0 bg-gradient-to-br from-[#0B2117]/90 via-[#071A10]/70 to-[#050B08]" />
 
-      <div className="relative z-10 flex min-h-screen flex-col">
-        <header className="bg-[#0B1A12] border-b border-white/[0.08] px-6 py-5 sm:px-10">
+      <div className="relative z-10 flex min-h-screen flex-col" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+        <header className="bg-[#0B1A12] border-b border-white/[0.08] px-6 py-5 sm:px-10" style={{ paddingTop: 'calc(1.25rem + env(safe-area-inset-top))' }}>
           <nav className="mx-auto flex max-w-7xl items-center justify-between">
             <Link to="/" className="flex items-center gap-2">
               <span className="h-2 w-2 rounded-full bg-[#E3A63F]" />

@@ -110,27 +110,44 @@ export default function EmergencyResponseScreen() {
 
       const d = await fetchEmergencyResponse(location);
 
-      // Resolve coordinates in lists
+      // Resolve coordinates and placeholders in lists
       if (d) {
         const resolveLoc = async (loc: string) => {
-          const trimmed = (loc || "").trim();
-          if (!trimmed || !coordRegex.test(trimmed)) return loc;
+          let trimmed = (loc || "").trim();
+
+          // Replace generic placeholders with the resolved city name
+          const placeholders = ["Current Sector", "Local Sector", "Current Location", "Detected Area", "Active Sector", "Monitored Zone"];
+          for (const p of placeholders) {
+            if (trimmed.includes(p)) {
+              trimmed = trimmed.replace(new RegExp(p, 'g'), resolvedLoc);
+            }
+          }
+
+          if (!trimmed || !coordRegex.test(trimmed)) return trimmed;
           try {
             const [lat, lng] = trimmed.split(',').map(s => parseFloat(s.trim()));
             if (!isNaN(lat) && !isNaN(lng)) {
               const addresses = await Location.reverseGeocodeAsync({ latitude: lat, longitude: lng });
               if (addresses && addresses.length > 0) {
                 const addr = addresses[0];
-                return addr.city || addr.district || addr.region || addr.subregion || addr.name || loc;
+                return addr.city || addr.district || addr.region || addr.subregion || addr.name || trimmed;
               }
             }
           } catch {}
-          return loc;
+          return trimmed;
         };
 
         const [resolvedIncidents, resolvedInfra, resolvedVillages] = await Promise.all([
-          Promise.all(d.incidents.map(async inc => ({ ...inc, location: await resolveLoc(inc.location) }))),
-          Promise.all(d.infrastructure.map(async inf => ({ ...inf, location: await resolveLoc(inf.location) }))),
+          Promise.all(d.incidents.map(async inc => ({
+            ...inc,
+            title: await resolveLoc(inc.title),
+            location: await resolveLoc(inc.location)
+          }))),
+          Promise.all(d.infrastructure.map(async inf => ({
+            ...inf,
+            name: await resolveLoc(inf.name),
+            location: await resolveLoc(inf.location)
+          }))),
           Promise.all(d.villages.map(async v => ({ ...v, name: await resolveLoc(v.name) })))
         ]);
 

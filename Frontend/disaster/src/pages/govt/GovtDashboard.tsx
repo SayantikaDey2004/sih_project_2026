@@ -29,17 +29,14 @@ export default function GovtDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#07140E]">
+    <div className="min-h-screen bg-[#07140E]" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
       {/* Header */}
-      <header className="bg-[#0B1A12] border-b border-white/[0.08] px-6 py-4 sm:px-10">
+      <header className="bg-[#0B1A12] border-b border-white/[0.08] px-6 py-4 sm:px-10" style={{ paddingTop: 'calc(1rem + env(safe-area-inset-top))' }}>
         <nav className="mx-auto flex max-w-7xl items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="h-2 w-2 rounded-full bg-[#E3A63F]" />
             <span className="text-sm font-semibold tracking-wide text-[#F4F1E8]">
               Geo Rakshak
-            </span>
-            <span className="px-3 py-1 rounded-full bg-[#1a3a2a] text-[10px] font-semibold tracking-widest text-[#4ade80] uppercase">
-              Govt Dashboard
             </span>
           </div>
           <div className="flex items-center gap-4">

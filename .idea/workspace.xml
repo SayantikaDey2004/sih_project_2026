@@ -5,20 +5,21 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5022a89e-8118-4faf-9dd3-b455dba72e5b" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.artifacts/45d299c9-a665-49f9-be75-668f87438dc3/implementation_plan.artifact.md" beforeDir="false" afterPath="$PROJECT_DIR$/.artifacts/45d299c9-a665-49f9-be75-668f87438dc3/implementation_plan.artifact.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Backend/dashboardfile.py" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/dashboardfile.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Backend/emergency-response.py" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/emergency-response.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Backend/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Frontend/disaster-native/src/screens/dashboard/DashboardScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/screens/dashboard/DashboardScreen.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Frontend/disaster-native/src/screens/emergency/EmergencyResponseScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/screens/emergency/EmergencyResponseScreen.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Frontend/disaster-native/src/screens/profile/ProfileScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/disaster-native/src/screens/profile/ProfileScreen.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Frontend/disaster/android/app/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/disaster/android/app/build.gradle" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Frontend/disaster/src/components/profile/AlertAreaCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/disaster/src/components/profile/AlertAreaCard.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Frontend/disaster/src/components/profile/PersonalInformationCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/disaster/src/components/profile/PersonalInformationCard.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Frontend/disaster/src/components/profile/ProfileSummaryCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/disaster/src/components/profile/ProfileSummaryCard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/disaster/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/disaster/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/disaster/src/components/GeoRakshakHeader.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/disaster/src/components/GeoRakshakHeader.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/disaster/src/components/dashboard/DashboardHeader.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/disaster/src/components/dashboard/DashboardHeader.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/disaster/src/components/dashboard/DashboardLayout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/disaster/src/components/dashboard/DashboardLayout.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Frontend/disaster/src/pages/EmergencyResponse.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/disaster/src/pages/EmergencyResponse.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Frontend/disaster/src/pages/dashboard.page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/disaster/src/pages/dashboard.page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Frontend/disaster/src/pages/profile.page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/disaster/src/pages/profile.page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/disaster/src/pages/auth/Login.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/disaster/src/pages/auth/Login.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/disaster/src/pages/auth/SignUp.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/disaster/src/pages/auth/SignUp.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/disaster/src/pages/govt/GovtDashboard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/disaster/src/pages/govt/GovtDashboard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/disaster/src/pages/govt/GovtLogin.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/disaster/src/pages/govt/GovtLogin.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/disaster/src/pages/govt/GovtProfile.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/disaster/src/pages/govt/GovtProfile.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/disaster/src/pages/govt/GovtReports.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/disaster/src/pages/govt/GovtReports.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/disaster/src/pages/govt/GovtSignup.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/disaster/src/pages/govt/GovtSignup.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

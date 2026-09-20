@@ -43,7 +43,6 @@ export default function EmergencyResponse() {
 
         // Detection flags
         const coordRegex = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
-        const isCoordinate = coordRegex.test(signupLocName);
         const genericPlaceholders = ["Current Location", "Registered Home Sector", "Local Sector", "Live Location", "Monitored Zone"];
         const isGeneric = (name: string) => !name || genericPlaceholders.some(p => name.includes(p));
 
@@ -88,35 +87,46 @@ export default function EmergencyResponse() {
         // Deep Sanitize and Resolve coordinates in response data
         if (responseData && active) {
             const resolveLoc = async (loc: string) => {
-                const trimmed = (loc || "").trim();
-                if (!trimmed || !coordRegex.test(trimmed)) return loc;
+                let trimmed = (loc || "").trim();
+
+                // Nuclear replacement for generic placeholders
+                const placeholders = ["Current Sector", "Local Sector", "Current Location", "Detected Area", "Active Sector", "Monitored Zone"];
+                for (const p of placeholders) {
+                    if (trimmed.includes(p)) {
+                        trimmed = trimmed.replace(new RegExp(p, 'g'), resolvedName);
+                    }
+                }
+
+                if (!trimmed || !coordRegex.test(trimmed)) return trimmed;
+
                 try {
                     const [lat, lon] = trimmed.split(",").map(s => s.trim());
                     const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=14&accept-language=en`);
                     if (res.ok) {
                         const geo = await res.json();
-                        return geo.address?.city || geo.address?.town || geo.address?.village || geo.address?.hamlet || geo.display_name.split(',')[0] || loc;
+                        const resolved = geo.address?.city || geo.address?.town || geo.address?.village || geo.address?.hamlet || geo.display_name.split(',')[0] || trimmed;
+                        return resolved;
                     }
                 } catch {}
-                return loc;
+                return trimmed;
             };
 
             const [resolvedIncidents, resolvedInfra, resolvedHelp, resolvedVillages] = await Promise.all([
                 Promise.all(responseData.incidents.map(async inc => ({
                     ...inc,
                     location: scrubSingapore(await resolveLoc(inc.location)),
-                    title: scrubSingapore(inc.name), // Note: interface says 'name', component uses 'title'? Wait, IncidentList uses 'name' as title?
-                    detail: scrubSingapore(inc.detail)
+                    title: scrubSingapore(await resolveLoc(inc.name)),
+                    name: scrubSingapore(await resolveLoc(inc.name)),
+                    detail: scrubSingapore(await resolveLoc(inc.detail))
                 }))),
                 Promise.all(responseData.infrastructure.map(async inf => ({
                     ...inf,
-                    name: scrubSingapore(inf.name),
+                    name: scrubSingapore(await resolveLoc(inf.name)),
                     location: scrubSingapore(await resolveLoc(inf.location))
                 }))),
                 Promise.all(responseData.helpEntries.map(async h => ({
                     ...h,
-                    title: scrubSingapore(h.title),
-                    name: scrubSingapore(h.name),
+                    title: scrubSingapore(await resolveLoc(h.title)),
                     location: scrubSingapore(await resolveLoc(h.location || ""))
                 }))),
                 Promise.all(responseData.villages.map(async v => ({
@@ -125,8 +135,8 @@ export default function EmergencyResponse() {
                 })))
             ]);
 
-            responseData.user_location = scrubSingapore(responseData.user_location);
-            responseData.network_location = scrubSingapore(responseData.network_location);
+            if (responseData.user_location) responseData.user_location = scrubSingapore(responseData.user_location);
+            if (responseData.network_location) responseData.network_location = scrubSingapore(responseData.network_location);
             responseData.incidents = resolvedIncidents;
             responseData.infrastructure = resolvedInfra;
             responseData.helpEntries = resolvedHelp;

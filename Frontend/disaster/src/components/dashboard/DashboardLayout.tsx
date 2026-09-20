@@ -38,14 +38,17 @@ export function DashboardLayout({
         onProfileClick={onProfileClick}
       />
 
-      <div className={`${styles.contentLayer} flex flex-col min-h-[calc(100vh-60px)] pb-16 md:pb-0`}>
+      <div className={`${styles.contentLayer} flex flex-col min-h-[calc(100vh-60px)] pb-[calc(80px+env(safe-area-inset-bottom))] md:pb-0`}>
         {/* Main Content */}
         <main className="flex-1 min-w-0">
           {children}
         </main>
 
         {/* Downbars / Bottom Navigation Bar — replacing the sidebar to look like a standard mobile app */}
-        <nav className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around border-t border-[#223B29] bg-[#0F1D14]/90 backdrop-blur-md px-2 py-2 shadow-lg" aria-label="Bottom navigation">
+        <nav
+          className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around border-t border-[#223B29] bg-[#0F1D14]/90 backdrop-blur-md px-2 py-2 pb-[calc(8px+env(safe-area-inset-bottom))] shadow-lg"
+          aria-label="Bottom navigation"
+        >
           {SIDEBAR_NAV_ITEMS.map((item) => {
             const isActive = location.pathname === item.path;
             const Icon = item.icon;
