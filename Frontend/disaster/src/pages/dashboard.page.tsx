@@ -192,6 +192,7 @@ export default function DisasterDashboard() {
 
   const handleSOS = async () => {
     try {
+      // Send background alert for record keeping
       setSOSState("loading");
       const response = await sendSOS();
 

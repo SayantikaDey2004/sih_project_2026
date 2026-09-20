@@ -1,0 +1,10 @@
+.git
+.venv
+Frontend/disaster/node_modules
+Frontend/disaster/android
+Frontend/disaster-native/node_modules
+**/__pycache__
+**/*.pyc
+.idea
+.artifacts
+.claude

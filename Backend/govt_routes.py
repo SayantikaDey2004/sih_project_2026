@@ -9,25 +9,17 @@ import uuid
 
 load_dotenv()
 
+from Backend.database import get_database
+
 # Mongo collection for govt officials
 def get_govt_collection():
-    mongodb_url = os.getenv("mongo_db") or os.getenv("mongodb_url")
-    if not mongodb_url:
+    db = get_database()
+    if db is None:
         raise HTTPException(status_code=500, detail="Database not configured")
-    client = MongoClient(mongodb_url)
-    db = client.get_database("user")
     return db["govt_users"]
 
 def get_db():
-    mongodb_url = os.getenv("mongo_db") or os.getenv("mongodb_url")
-    if not mongodb_url:
-        return None
-    try:
-        client = MongoClient(mongodb_url, serverSelectionTimeoutMS=2000)
-        client.admin.command("ping")
-        return client.get_database("user")
-    except Exception:
-        return None
+    return get_database()
 
 class GovtRegister(BaseModel):
     email: EmailStr
@@ -106,7 +98,12 @@ def govt_profile(current_user: dict = Depends(get_current_govt_user)):
 def get_reports(current_user: dict = Depends(get_current_govt_user)):
     database = get_db()
     if database is None:
+        print("ERROR: Govt reports fetch failed - Database not available")
         raise HTTPException(status_code=500, detail="Database not available")
+
     reports_col = database["disaster_reports"]
-    reports = list(reports_col.find({}, {"_id": 0}))
+    count = reports_col.count_documents({})
+    print(f"DEBUG: Govt portal fetching reports from {database.name}. Found {count} reports.")
+
+    reports = list(reports_col.find({}, {"_id": 0}).sort("timestamp", -1))
     return reports

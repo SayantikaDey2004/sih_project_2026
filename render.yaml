@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: sih-project-unified
+    env: docker
+    plan: free
+    region: singapore
+    healthCheckPath: /
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+      - key: mongo_db
+        sync: false
+      - key: mongodb_url
+        sync: false
+      - key: MONGO_DB_NAME
+        value: user_db
+      - key: SECRET_KEY
+        value: geo_rakshak_secret_key_2026
+      - key: ALGORITHM
+        value: HS256
+      - key: PYTHONPATH
+        value: /app
+      - key: PYTHONUNBUFFERED
+        value: "1"

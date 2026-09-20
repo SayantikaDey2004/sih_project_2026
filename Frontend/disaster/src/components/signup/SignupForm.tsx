@@ -24,7 +24,7 @@ export function SignupForm({ onGeoError, onSuccess }: SignupFormProps) {
 
   const useCurrentLocation = () => {
     if (!navigator.geolocation) {
-      onGeoError("Your browser does not support location access. Enter your area manually.");
+      onGeoError("Your phone does not support GPS location. Please enter manually.");
       return;
     }
 
@@ -34,10 +34,18 @@ export function SignupForm({ onGeoError, onSuccess }: SignupFormProps) {
         updateField("location", `${coords.latitude.toFixed(4)}, ${coords.longitude.toFixed(4)}`);
         setIsLocating(false);
       },
-      () => {
+      (error) => {
+        console.error("GPS Error:", error);
         setIsLocating(false);
-        onGeoError("Allow location access or enter your area manually to receive relevant alerts.");
+        let message = "Allow location access or enter your area manually to receive relevant alerts.";
+        if (error.code === 1) {
+          message = "Location permission denied. Please allow location in your phone settings.";
+        } else if (error.code === 3) {
+          message = "GPS timeout. Please check your signal and try again.";
+        }
+        onGeoError(message);
       },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
     );
   };
 
@@ -91,11 +99,29 @@ export function SignupForm({ onGeoError, onSuccess }: SignupFormProps) {
       ))}
 
       <div>
-        <label htmlFor="location" className="mb-1.5 block text-sm font-medium text-[#DCE8D8]">Alert area</label>
+        <label htmlFor="location" className="mb-1.5 block text-sm font-medium text-[#DCE8D8]">Verification Area (GPS only)</label>
         <div className="flex gap-2">
-          <input id="location" name="location" type="text" autoComplete="address-level2" value={values.location} onChange={(event) => updateField("location", event.target.value)} aria-invalid={Boolean(errors.location)} className="min-w-0 flex-1 rounded-md border border-white/15 bg-white/10 px-3 py-2.5 text-sm text-white outline-none placeholder:text-[#9FB3A0] focus:border-[#D9A24B]" placeholder="City, district, or coordinates" />
-          <button type="button" onClick={useCurrentLocation} disabled={isLocating} className="shrink-0 rounded-md border border-[#D9A24B]/70 px-3 text-xs font-medium text-[#F0C77D] hover:bg-[#D9A24B]/10 disabled:opacity-60">{isLocating ? "Locating..." : "Use GPS"}</button>
+          <input
+            id="location"
+            name="location"
+            type="text"
+            autoComplete="address-level2"
+            value={values.location}
+            readOnly
+            aria-invalid={Boolean(errors.location)}
+            className="min-w-0 flex-1 rounded-md border border-white/15 bg-white/5 px-3 py-2.5 text-sm text-white/50 outline-none cursor-not-allowed"
+            placeholder="Auto-detected via GPS"
+          />
+          <button
+            type="button"
+            onClick={useCurrentLocation}
+            disabled={isLocating}
+            className="shrink-0 rounded-md bg-[#D9A24B]/20 border border-[#D9A24B]/70 px-4 text-xs font-medium text-[#F0C77D] hover:bg-[#D9A24B]/30 disabled:opacity-60 transition-colors"
+          >
+            {isLocating ? "Detecting..." : "Detect GPS"}
+          </button>
         </div>
+        {values.location && <p className="mt-1.5 text-[10px] text-[#34D399] flex items-center gap-1"><span>📍</span> Device Location Verified</p>}
         {errors.location && <p className="mt-1 text-xs text-[#F0B39B]">{errors.location}</p>}
       </div>
 

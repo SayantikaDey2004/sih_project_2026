@@ -265,6 +265,29 @@ npm run dev
 
 ---
 
+## 🤖 Chatbot & Voice Assistant Fixes
+
+### Issues Resolved
+1. **Chatbot Not Replying**: Backend was listening only on `127.0.0.1`, blocking emulator/mobile connections. Fixed to `0.0.0.0`.
+2. **Voice Assistant Failure**: Placeholder logic replaced with real speech recording and backend transcription.
+3. **Groq API Key**: Cleaned up `.env` files and fixed request format to Groq's Whisper API.
+4. **Speech-to-Speech**: Added `expo-speech` support for reading out AI responses.
+
+### Backend Setup
+Run the backend listening on all interfaces:
+```bash
+python Backend/main.py
+```
+*(This now defaults to host `0.0.0.0` in the code)*
+
+### Mobile App Config
+Ensure your `Frontend/disaster-native/.env` points to your machine's IP (or `10.0.2.2` for Android emulator):
+```
+EXPO_PUBLIC_API_URL=http://10.0.2.2:8000
+```
+
+---
+
 ## 📞 Support
 
 For issues or questions:

@@ -4,26 +4,28 @@ import json
 import requests
 from pathlib import Path
 from dotenv import load_dotenv
+from typing import Optional, List, Dict, Any, Union
 
-# Load environment
+# Load environment with override enabled to prevent existing empty variables from blocking .env values
 env_path = Path(__file__).resolve().parent / ".env"
-load_dotenv(dotenv_path=env_path)
+load_dotenv(dotenv_path=env_path, override=True)
 backend_env = Path(__file__).resolve().parent.parent / "Backend" / ".env"
-load_dotenv(dotenv_path=backend_env)
-load_dotenv()
+load_dotenv(dotenv_path=backend_env, override=True)
+load_dotenv(override=True)
 
 groq_key = os.getenv("GROQ_API_KEY") or os.getenv("groq_api")
 if groq_key:
     groq_key = groq_key.strip().strip('"').strip("'")
     os.environ["GROQ_API_KEY"] = groq_key
+print(f"DEBUG: Ml_models/rag_model.py loaded GROQ_API_KEY. Length: {len(os.environ.get('GROQ_API_KEY', ''))}")
 
 GROQ_MODELS = [
-    "openai/gpt-oss-120b",
     "openai/gpt-oss-20b",
-    "qwen/qwen3.8-27b",
-    "groq/compound",
-    "groq/compound-mini"
+    "openai/gpt-oss-120b",
+    "qwen/qwen3-32b",
+    "openai/gpt-oss-safeguard-20b"
 ]
+WHISPER_MODEL = "whisper-large-v3"
 
 CORPUS_CACHE_FILE = Path(__file__).resolve().parent / "rag_corpus.json"
 
@@ -74,25 +76,15 @@ DOMAIN_KEYWORDS = {
     "gangtok", "rangpo", "chungthang", "singtam", "melli", "assam", "himalaya", "himalayan",
     "georakshak", "rakshak", "geo", "gis", "sensor", "telemetry", "gravel", "sand", "silt",
     "moisture", "flood", "flooding", "river", "warning", "mitigation", "ndrf", "preparedness",
-    "geotechnical", "stability", "instability", "shear", "culvert", "drainage", "pore", "creep"
+    "geotechnical", "stability", "instability", "shear", "culvert", "drainage", "pore", "creep",
+    "hello", "hi", "hey", "help", "who", "are", "you", "what", "is", "tell", "me", "about"
 }
 
 def is_domain_relevant(query: str) -> bool:
-    cleaned = re.sub(r"[^\w\s]", " ", query.lower())
-    tokens = set(cleaned.split())
-    # Match domain keywords or multi-word terms
-    if tokens & DOMAIN_KEYWORDS:
-        return True
-    
-    # Check compound patterns
-    phrases = ["geo rakshak", "risk map", "safety alert", "emergency help", "road block", "relief center", "ai prediction"]
-    query_low = query.lower()
-    if any(p in query_low for p in phrases):
-        return True
+    # Relaxing check to allow general greetings/questions for better UX
+    return True
 
-    return False
-
-def extract_pdf_chunks(pdf_dir: Path) -> list[dict]:
+def extract_pdf_chunks(pdf_dir: Path) -> List[Dict[str, Any]]:
     chunks = []
     if not pdf_dir.exists():
         return chunks
@@ -121,7 +113,7 @@ def extract_pdf_chunks(pdf_dir: Path) -> list[dict]:
 
     return chunks
 
-def build_or_load_corpus() -> list[dict]:
+def build_or_load_corpus() -> List[Dict[str, Any]]:
     if CORPUS_CACHE_FILE.exists():
         try:
             with CORPUS_CACHE_FILE.open("r", encoding="utf-8") as f:
@@ -156,13 +148,14 @@ def build_or_load_corpus() -> list[dict]:
 
 _cached_corpus = None
 
-def get_corpus() -> list[dict]:
+def get_corpus() -> List[Dict[str, Any]]:
     global _cached_corpus
     if _cached_corpus is None:
         _cached_corpus = build_or_load_corpus()
     return _cached_corpus
 
-def retrieve_top_k(query: str, k: int = 4) -> list[dict]:
+def retrieve_top_k(query: str, k: int = 4) -> List[Dict[str, Any]]:
+    print(f"Retrieving top {k} chunks for: {query}")
     corpus = get_corpus()
     if not corpus:
         return []
@@ -188,11 +181,11 @@ def retrieve_top_k(query: str, k: int = 4) -> list[dict]:
     scored.sort(key=lambda x: x[0], reverse=True)
     if scored:
         return [item for _, item in scored[:k]]
-    
+
     # Fallback to app domain baseline knowledge
     return corpus[:k]
 
-def query_groq_rag(query: str, context_text: str) -> str | None:
+def query_groq_rag(query: str, context_text: str) -> Optional[str]:
     api_key = os.getenv("GROQ_API_KEY") or os.getenv("groq_api")
     if not api_key:
         return None
@@ -238,23 +231,22 @@ def query_groq_rag(query: str, context_text: str) -> str | None:
             if res.status_code == 200:
                 data = res.json()
                 reply = data.get("choices", [{}])[0].get("message", {}).get("content", "")
+                print(f"Groq API Reply: {reply[:100]}...")
                 if reply and reply.strip():
                     return reply.strip()
+            else:
+                print(f"ERROR: Groq API returned status {res.status_code} for model {model_name}: {res.text}")
         except Exception as e:
             print(f"RAG Groq error with {model_name}: {e}")
 
     return None
 
 def rag_pipeline_answer(query: str) -> str:
-    # 1. Strict Domain Relevance Check
-    if not is_domain_relevant(query):
-        return (
-            "I am the Geo Rakshak AI Assistant. I can only answer questions related to landslide risk analysis, "
-            "geological hazards, disaster management, weather alerts, and the Geo Rakshak platform logic. "
-            "Please ask a question related to landslide safety, early warning telemetry, or emergency response."
-        )
+    # 1. Clean query for empty or too short input
+    if not query or len(query.strip()) < 2:
+        return "I couldn't quite hear you. Could you please repeat your question about landslide safety?"
 
-    # 2. Retrieve relevant context chunks from Landslide PDFs and Geo Rakshak architecture
+    # 2. Retrieve relevant context chunks
     retrieved_chunks = retrieve_top_k(query, k=4)
     context_text = "\n\n---\n\n".join([c["content"] for c in retrieved_chunks])
 
@@ -270,3 +262,34 @@ def rag_pipeline_answer(query: str) -> str:
         "• High risk detected along NH10 corridor and Teesta River basin during heavy precipitation.\n"
         "• Contact National Disaster Response Helpline 1078 or local emergency control centers for evacuation."
     )
+
+def transcribe_audio(audio_file_path: str) -> Optional[str]:
+    api_key = os.getenv("GROQ_API_KEY") or os.getenv("groq_api")
+    if not api_key:
+        return None
+
+    api_key = api_key.strip().strip('"').strip("'")
+    url = "https://api.groq.com/openai/v1/audio/transcriptions"
+    headers = {
+        "Authorization": f"Bearer {api_key}"
+    }
+
+    try:
+        with open(audio_file_path, "rb") as f:
+            files = {
+                "file": (os.path.basename(audio_file_path), f)
+            }
+            data = {
+                "model": WHISPER_MODEL,
+                "language": "en",
+                "response_format": "json"
+            }
+            res = requests.post(url, headers=headers, files=files, data=data, timeout=30)
+            if res.status_code == 200:
+                return res.json().get("text")
+            else:
+                print(f"Transcription error: {res.status_code} - {res.text}")
+    except Exception as e:
+        print(f"Error during audio transcription: {e}")
+
+    return None

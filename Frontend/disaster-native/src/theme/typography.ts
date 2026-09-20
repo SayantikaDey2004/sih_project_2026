@@ -1,0 +1,42 @@
+export const Typography = {
+  fontFamily: {
+    regular: 'System',
+    medium: 'System',
+    semiBold: 'System',
+    bold: 'System',
+  },
+  fontSize: {
+    xs: 11,
+    sm: 12,
+    base: 14,
+    md: 15,
+    lg: 16,
+    xl: 18,
+    xxl: 22,
+    h3: 24,
+    h2: 28,
+    h1: 34,
+    display: 40,
+  },
+  fontWeight: {
+    regular: '400' as const,
+    medium: '500' as const,
+    semiBold: '600' as const,
+    bold: '700' as const,
+    extraBold: '800' as const,
+  },
+  lineHeight: {
+    tight: 18,
+    normal: 22,
+    relaxed: 26,
+    loose: 32,
+    heading: 38,
+  },
+  letterSpacing: {
+    tight: -0.5,
+    normal: 0,
+    wide: 0.5,
+    wider: 0.8,
+    widest: 1.2,
+  },
+};

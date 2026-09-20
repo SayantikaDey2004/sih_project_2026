@@ -5,6 +5,7 @@ export interface ChatResponse {
 }
 
 const API_BASE_URL = (import.meta.env.VITE_API_URL ?? "http://localhost:8000").replace(/\/$/, "");
+console.log("Chat Service API URL:", API_BASE_URL);
 
 async function postToApi(endpoints: string[], message: string): Promise<string> {
   const token = localStorage.getItem("geo-rakshak:access-token");
@@ -21,7 +22,6 @@ async function postToApi(endpoints: string[], message: string): Promise<string> 
       const response = await fetch(endpoint, {
         method: "POST",
         headers,
-        credentials: "include",
         body: JSON.stringify({ question: message }),
       });
 
@@ -35,7 +35,9 @@ async function postToApi(endpoints: string[], message: string): Promise<string> 
         lastError = new Error(detail || `Server responded with status ${response.status}`);
       }
     } catch (err) {
-      lastError = err instanceof Error ? err : new Error("Network connection error");
+      console.error(`Fetch failed for ${endpoint}:`, err);
+      // More descriptive error for the UI
+      lastError = err instanceof Error ? err : new Error(`Network error: Check if backend is live at ${API_BASE_URL}`);
     }
   }
 
@@ -59,4 +61,31 @@ export async function sendVoiceMessage(message: string): Promise<string> {
     `${API_BASE_URL}/chatbot`,
   ];
   return postToApi(endpoints, message);
+}
+
+export async function sendVoiceAudio(blob: Blob): Promise<{ transcription: string; response: string }> {
+  const token = localStorage.getItem("geo-rakshak:access-token");
+  const formData = new FormData();
+  const ext = blob.type.includes("mp4") ? "mp4" : blob.type.includes("ogg") ? "ogg" : blob.type.includes("wav") ? "wav" : "webm";
+  formData.append("file", blob, `recording.${ext}`);
+
+  const response = await fetch(`${API_BASE_URL}/api/voice-chat`, {
+    method: "POST",
+    body: formData,
+    headers: {
+      Accept: "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Server error: ${response.status}`);
+  }
+
+  const result = await response.json();
+  return {
+    transcription: result.transcription,
+    response: result.response,
+  };
 }

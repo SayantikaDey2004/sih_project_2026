@@ -8,7 +8,7 @@ import {
   type PropsWithChildren,
 } from "react";
 import { Send, Mic, X, Trash2, Sparkles, Bot } from "lucide-react";
-import { sendChatMessage, sendVoiceMessage } from "../services/chat.service";
+import { sendChatMessage, sendVoiceMessage, sendVoiceAudio } from "../services/chat.service";
 import { DashboardLayout } from "../components/dashboard/DashboardLayout";
 import { getCurrentUser } from "../services/auth.service";
 import bg3Image from "../assets/bg3.jpg";
@@ -28,6 +28,7 @@ type ChatContextValue = {
   isTyping: boolean;
   error: string | null;
   sendUserMessage: (text: string, viaVoice?: boolean) => Promise<string | null>;
+  sendVoiceAudioMessage: (blob: Blob) => Promise<string | null>;
   clearChat: () => void;
   appendAiErrorMessage: (text: string) => void;
 };
@@ -68,6 +69,26 @@ function ChatProvider({ children }: PropsWithChildren) {
     }
   }, []);
 
+  const sendVoiceAudioMessage = useCallback(async (blob: Blob) => {
+    setError(null);
+    setIsTyping(true);
+    try {
+      const { transcription, response } = await sendVoiceAudio(blob);
+      setMessages((prev) => [
+        ...prev,
+        { id: crypto.randomUUID(), sender: "user", text: transcription, viaVoice: true },
+        { id: crypto.randomUUID(), sender: "ai", text: response, viaVoice: true },
+      ]);
+      return response;
+    } catch (requestError) {
+      const msg = requestError instanceof Error ? requestError.message : "Voice assistant failed.";
+      setError(msg);
+      return null;
+    } finally {
+      setIsTyping(false);
+    }
+  }, []);
+
   const appendAiErrorMessage = useCallback((text: string) => {
     setMessages((prev) => [
       ...prev,
@@ -83,38 +104,20 @@ function ChatProvider({ children }: PropsWithChildren) {
 
   return (
     <ChatContext.Provider
-      value={{ messages, isTyping, error, sendUserMessage, clearChat, appendAiErrorMessage }}
+      value={{
+        messages,
+        isTyping,
+        error,
+        sendUserMessage,
+        sendVoiceAudioMessage,
+        clearChat,
+        appendAiErrorMessage,
+      }}
     >
       {children}
     </ChatContext.Provider>
   );
 }
-
-/* ============================================================================
-   SPEECH RECOGNITION TYPES
-============================================================================ */
-type SpeechRecognitionResultEvent = {
-  results: ArrayLike<{ 0: { transcript: string } }>;
-};
-
-type SpeechRecognitionInstance = {
-  continuous: boolean;
-  interimResults: boolean;
-  lang: string;
-  start: () => void;
-  stop: () => void;
-  abort: () => void;
-  onresult: ((event: SpeechRecognitionResultEvent) => void) | null;
-  onerror: ((event: { error: string }) => void) | null;
-  onend: (() => void) | null;
-};
-
-type SpeechRecognitionConstructor = new () => SpeechRecognitionInstance;
-
-type SpeechWindow = Window & {
-  SpeechRecognition?: SpeechRecognitionConstructor;
-  webkitSpeechRecognition?: SpeechRecognitionConstructor;
-};
 
 /* ============================================================================
    VOICE ASSISTANT OVERLAY (Neon Orb & Soundwaves Popup - Only Animation)
@@ -244,13 +247,22 @@ function TypingIndicator() {
    MAIN CHAT SECTION
 ============================================================================ */
 function ChatSection() {
-  const { messages, isTyping, error, sendUserMessage, clearChat, appendAiErrorMessage } = useChat();
+  const {
+    messages,
+    isTyping,
+    error,
+    sendUserMessage,
+    sendVoiceAudioMessage,
+    clearChat,
+    appendAiErrorMessage,
+  } = useChat();
   const [draft, setDraft] = useState("");
   const [voiceOpen, setVoiceOpen] = useState(false);
   const [confirmingClear, setConfirmingClear] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const clearArmTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -258,12 +270,8 @@ function ChatSection() {
 
   useEffect(() => () => {
     if (clearArmTimer.current) clearTimeout(clearArmTimer.current);
-    if (recognitionRef.current) {
-      try {
-        recognitionRef.current.abort();
-      } catch {
-        // ignore
-      }
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+      mediaRecorderRef.current.stop();
     }
   }, []);
 
@@ -275,75 +283,57 @@ function ChatSection() {
   };
 
   const stopVoiceCapture = useCallback(() => {
-    if (recognitionRef.current) {
-      try {
-        recognitionRef.current.onresult = null;
-        recognitionRef.current.onerror = null;
-        recognitionRef.current.onend = null;
-        recognitionRef.current.stop();
-        recognitionRef.current.abort();
-      } catch {
-        // ignore
-      }
-      recognitionRef.current = null;
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+      mediaRecorderRef.current.stop();
     }
     setVoiceOpen(false);
   }, []);
 
-  const startVoiceCapture = useCallback(() => {
-    stopVoiceCapture();
-
-    const speechWindow = window as SpeechWindow;
-    const SpeechRecognition = speechWindow.SpeechRecognition ?? speechWindow.webkitSpeechRecognition;
-
-    if (!SpeechRecognition) {
-      appendAiErrorMessage("Voice assistant unavailable, please try again");
-      return;
-    }
-
-    setVoiceOpen(true);
-
+  const startVoiceCapture = useCallback(async () => {
+    console.log("Starting voice capture...");
     try {
-      const recognition = new SpeechRecognition();
-      recognitionRef.current = recognition;
-      recognition.continuous = false;
-      recognition.interimResults = false;
-      recognition.lang = "en-IN";
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
 
-      recognition.onresult = async (event) => {
-        const transcript = event.results[0]?.[0]?.transcript?.trim();
-        stopVoiceCapture();
-
-        if (!transcript) {
-          appendAiErrorMessage("Voice assistant unavailable, please try again");
-          return;
-        }
-
-        try {
-          const reply = await sendUserMessage(transcript, true);
-          if (!reply) {
-            appendAiErrorMessage("Voice assistant unavailable, please try again");
-          }
-        } catch {
-          appendAiErrorMessage("Voice assistant unavailable, please try again");
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
         }
       };
 
-      recognition.onerror = () => {
-        stopVoiceCapture();
-        appendAiErrorMessage("Voice assistant unavailable, please try again");
+      mediaRecorder.onstop = async () => {
+        // Force the type to webm as it's the standard for modern Chrome/Android
+        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        console.log("DEBUG: Audio blob created, size:", audioBlob.size, "type:", audioBlob.type);
+
+        // Reduced threshold to 200 bytes to allow shorter voice commands
+        if (audioBlob.size > 200) {
+          await sendVoiceAudioMessage(audioBlob);
+        } else {
+          console.warn("DEBUG: Audio too small.");
+          appendAiErrorMessage("I didn't catch that. Please hold the mic and speak clearly.");
+        }
+        stream.getTracks().forEach((track) => track.stop());
       };
 
-      recognition.onend = () => {
-        stopVoiceCapture();
-      };
+      setVoiceOpen(true);
+      // Start with a time slice to ensure periodic data chunks
+      mediaRecorder.start(500);
 
-      recognition.start();
-    } catch {
-      stopVoiceCapture();
-      appendAiErrorMessage("Voice assistant unavailable, please try again");
+      // Auto stop after 6 seconds if not stopped manually
+      setTimeout(() => {
+        if (mediaRecorder.state !== "inactive") {
+          stopVoiceCapture();
+        }
+      }, 6000);
+    } catch (err) {
+      console.error("Error accessing microphone:", err);
+      appendAiErrorMessage("Microphone access denied or unavailable.");
+      setVoiceOpen(false);
     }
-  }, [stopVoiceCapture, appendAiErrorMessage, sendUserMessage]);
+  }, [stopVoiceCapture, appendAiErrorMessage, sendVoiceAudioMessage]);
 
   const handleClearClick = () => {
     if (confirmingClear) {

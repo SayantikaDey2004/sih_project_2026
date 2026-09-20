@@ -1,6 +1,4 @@
-import { useState } from "react";
-import { useLocation, useNavigate } from "react-router";
-import { Bot, Cross, LayoutDashboard, MapPinned, Menu, X } from "lucide-react";
+import { useNavigate } from "react-router";
 import type { User } from "../../@types/interface/dashboard";
 
 interface DashboardHeaderProps {
@@ -11,37 +9,17 @@ interface DashboardHeaderProps {
   onProfileClick?: () => void;
 }
 
-const DASHBOARD_NAV_ITEMS = [
-  { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
-  { label: "Risk Map", path: "/risk-map", icon: MapPinned },
-  { label: "Emergency Response", path: "/emergency-response", icon: Cross },
-  { label: "AI Assistant", path: "/ai-analysis", icon: Bot },
-];
-
 export function DashboardHeader({
   user,
   email,
-  hideNav,
   onProfileClick,
 }: DashboardHeaderProps) {
-  const location = useLocation();
   const navigate = useNavigate();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-50 border-b border-[#223B29] bg-[rgba(15,29,20,0.85)] backdrop-blur-sm">
       <div className="flex items-center justify-between px-9 py-[14px] max-md:px-5 max-md:py-3">
         <div className="flex items-center gap-3">
-          {/* Mobile Hamburger Button */}
-          <button
-            type="button"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="flex h-9 w-9 items-center justify-center rounded-md bg-[#1F3325] text-[#93A490] transition hover:bg-[#2A4632] hover:text-[#EAE7DA] md:hidden"
-            aria-label="Toggle menu"
-          >
-            {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
-
           {/* Brand */}
           <button
             type="button"
@@ -59,32 +37,6 @@ export function DashboardHeader({
             </div>
           </button>
         </div>
-
-        {/* Dashboard Navigation Bar — hidden when sidebar layout is active */}
-        {!hideNav && (
-          <nav className="hidden items-center gap-1 md:flex" aria-label="Dashboard navigation">
-            {DASHBOARD_NAV_ITEMS.map((item) => {
-              const isActive = location.pathname === item.path;
-              const Icon = item.icon;
-              return (
-                <button
-                  key={item.path}
-                  type="button"
-                  onClick={() => navigate(item.path)}
-                  className={`flex h-9 w-9 items-center justify-center rounded-md transition-all ${
-                    isActive
-                      ? "border border-[#E3A63F]/40 bg-[#16281C] text-[#E3A63F] shadow-sm"
-                      : "text-[#93A490] hover:bg-[#16281C]/50 hover:text-[#EAE7DA]"
-                  }`}
-                  aria-label={item.label}
-                  title={item.label}
-                >
-                  <Icon size={18} strokeWidth={1.8} aria-hidden="true" />
-                </button>
-              );
-            })}
-          </nav>
-        )}
 
         {/* Right Actions — Profile only */}
         <div className="flex items-center gap-[18px]">
@@ -108,34 +60,6 @@ export function DashboardHeader({
           </button>
         </div>
       </div>
-
-      {/* Mobile Nav Menu (Dropdown) */}
-      {mobileMenuOpen && (
-        <nav className="absolute left-0 top-full w-full border-b border-[#223B29] bg-[#0F1D14] shadow-xl md:hidden" aria-label="Mobile navigation">
-          {DASHBOARD_NAV_ITEMS.map((item) => {
-            const isActive = location.pathname === item.path;
-            const Icon = item.icon;
-            return (
-              <button
-                key={item.path}
-                type="button"
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  navigate(item.path);
-                }}
-                className={`flex w-full items-center gap-3 px-5 py-4 transition-all ${
-                  isActive
-                    ? "bg-[#16281C] text-[#E3A63F]"
-                    : "text-[#93A490] hover:bg-[#16281C]/50 hover:text-[#EAE7DA]"
-                }`}
-              >
-                <Icon size={18} strokeWidth={1.8} aria-hidden="true" />
-                <span className="text-[14px] font-medium">{item.label}</span>
-              </button>
-            );
-          })}
-        </nav>
-      )}
     </header>
   );
 }

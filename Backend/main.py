@@ -11,8 +11,15 @@ from importlib import import_module
 import requests
 import uvicorn
 import os
+import time
 
-load_dotenv()
+from pathlib import Path
+# Load environment from root, then explicitly from Backend directory with override
+load_dotenv(override=True)
+backend_env = Path(__file__).resolve().parent / ".env"
+if backend_env.exists():
+    load_dotenv(dotenv_path=backend_env, override=True)
+print(f"DEBUG: main.py initialized. GROQ_API_KEY present: {bool(os.getenv('GROQ_API_KEY'))}")
 
 from Backend.dashboardfile import dashboard_router
 from Backend.Chat_Bot import router as chatbot_router
@@ -26,23 +33,16 @@ from Backend.govt_routes import router as govt_router
 app = FastAPI(title="Geo Rakshak API")
 
 # Configure CORS for frontend access
+# Using allow_origin_regex dynamically allows any origin/port while supporting allow_credentials=True
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://localhost:5174",
-        "http://127.0.0.1:5174",
-        "http://localhost:4173",
-        "http://127.0.0.1:4173",
-    ],
-    allow_origin_regex=r"https?://.*",
+    allow_origin_regex="https?://.*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+from Backend.database import get_database
 
 # Register routers
 app.include_router(dashboard_router)
@@ -53,20 +53,18 @@ app.include_router(prediction_router)
 app.include_router(emergency_router)
 app.include_router(govt_router)
 
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    print(f"Incoming request: {request.method} {request.url}")
+    response = await call_next(request)
+    print(f"Response status: {response.status_code}")
+    return response
+
 # In-memory user fallback if MongoDB is not reachable
 in_memory_users = {}
 
 def get_collection():
-    mongodb_url = os.getenv("mongo_db") or os.getenv("mongodb_url")
-    if not mongodb_url:
-        return None
-    try:
-        client = MongoClient(mongodb_url, serverSelectionTimeoutMS=2000)
-        client.admin.command("ping")
-        database = client.get_database("user_db")
-        return database
-    except Exception:
-        return None
+    return get_database()
 
 @app.get("/")
 def home_page(request: Request):
@@ -168,24 +166,44 @@ def register_user(user: register):
 
 @app.post("/api/incidents")
 def report_incident(data: dict):
-    database=get_collection()
-    collection=database["disaster_reports"]
-    disaster_type = data.get("disasterType", "Disaster")
+    print(f"DEBUG: Received incident report data: {data}")
+    database = get_collection()
+    if database is None:
+        print("ERROR: Database connection failed during incident report")
+        return {"success": False, "detail": "Database connection failed"}
+
+    collection = database["disaster_reports"]
+
+    disaster_type = data.get("disasterType") or data.get("disaster_type") or "Disaster"
     location = data.get("location", "specified location")
-    t = collection.count_documents({})
-    incident_id = f"INC-{t+100}"
+    description = data.get("description", "")
 
     try:
-        collection.insert_one({"disaster_type":disaster_type,"location":location,"IncidentId":incident_id})
-    except Exception as e:
-        return {"success":False}
-    else:
+        t = collection.count_documents({})
+        incident_id = f"INC-{t+1001}"
+
+        doc = {
+            "disaster_type": str(disaster_type),
+            "location": str(location),
+            "description": str(description),
+            "IncidentId": incident_id,
+            "timestamp": data.get("timestamp") or time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+        }
+        collection.insert_one(doc)
+        print(f"DEBUG: Incident saved to {database.name} as {incident_id}")
         return {
             "success": True,
-            "message": f"{disaster_type} reported at {location}. Nearest emergency team notified.",
-            "incidentId": f"INC-{t+100}",
+            "message": f"Success! {disaster_type} reported. Govt notified.",
+            "incidentId": incident_id,
             "teamNotified": True
         }
+    except Exception as e:
+        print(f"ERROR saving incident: {e}")
+        return {"success": False, "detail": str(e)}
+
+@app.get("/api/health")
+def health_check():
+    return {"status": "ok", "db": "connected" if get_collection() is not None else "disconnected"}
 
 connections = []
 
@@ -274,5 +292,5 @@ def logout(response: Response):
 
 
 if __name__ == "__main__":
-    uvicorn.run("Backend.main:app", host="127.0.0.1", port=8000, reload=True)
+    uvicorn.run("Backend.main:app", host="0.0.0.0", port=8000, reload=True)
 

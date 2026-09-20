@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { RouterProvider } from "react-router";
 import Router from "./routes/router";
 import DisasterAlert from './components/DisasterAlert';
 import useDisasterWebSocket from './hooks/useDisasterWebSocket';
 
 export default function App() {
-  const { disasterMessage, clearMessage } = useDisasterWebSocket();
+  const { disasterMessage, clearDisaster } = useDisasterWebSocket();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -16,7 +16,7 @@ export default function App() {
 
   const handleClose = () => {
     setVisible(false);
-    clearMessage();
+    clearDisaster();
   };
 
   return (

@@ -30,7 +30,7 @@ export function DashboardLayout({
 
   return (
     <div className={styles.shell}>
-      {/* Slim top header — nav hidden here, shown in sidebar instead */}
+      {/* Slim top header — hide nav or sidebar triggers */}
       <DashboardHeader
         user={user}
         email={email}
@@ -38,33 +38,32 @@ export function DashboardLayout({
         onProfileClick={onProfileClick}
       />
 
-      <div className={`${styles.contentLayer} flex min-h-[calc(100vh-60px)]`}>
-        {/* Sidebar — desktop only; mobile falls back to header's mobile nav */}
-        <aside className={`${styles.sidebar} hidden shrink-0 flex-col border-r border-[#223B29] md:flex`}>
-          <nav className="sticky top-[60px] flex flex-col items-center gap-2 px-3 py-5" aria-label="Dashboard navigation">
-            {SIDEBAR_NAV_ITEMS.map((item) => {
-              const isActive = location.pathname === item.path;
-              const Icon = item.icon;
-              return (
-                <button
-                  key={item.path}
-                  type="button"
-                  onClick={() => navigate(item.path)}
-                  className={`${styles.navButton} ${isActive ? styles.navButtonActive : ""}`}
-                  aria-label={item.label}
-                  title={item.label}
-                >
-                  <Icon size={20} strokeWidth={1.8} aria-hidden="true" />
-                </button>
-              );
-            })}
-          </nav>
-        </aside>
-
+      <div className={`${styles.contentLayer} flex flex-col min-h-[calc(100vh-60px)] pb-16 md:pb-0`}>
         {/* Main Content */}
         <main className="flex-1 min-w-0">
           {children}
         </main>
+
+        {/* Downbars / Bottom Navigation Bar — replacing the sidebar to look like a standard mobile app */}
+        <nav className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around border-t border-[#223B29] bg-[#0F1D14]/90 backdrop-blur-md px-2 py-2 shadow-lg" aria-label="Bottom navigation">
+          {SIDEBAR_NAV_ITEMS.map((item) => {
+            const isActive = location.pathname === item.path;
+            const Icon = item.icon;
+            return (
+              <button
+                key={item.path}
+                type="button"
+                onClick={() => navigate(item.path)}
+                className={`flex flex-col items-center justify-center gap-1 px-3 py-1 text-center transition-all ${
+                  isActive ? "text-[#E3A63F]" : "text-[#93A490] hover:text-[#EAE7DA]"
+                }`}
+              >
+                <Icon size={22} strokeWidth={isActive ? 2.2 : 1.8} aria-hidden="true" />
+                <span className="text-[11px] font-medium tracking-tight">{item.label}</span>
+              </button>
+            );
+          })}
+        </nav>
       </div>
     </div>
   );

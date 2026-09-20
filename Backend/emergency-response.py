@@ -3,8 +3,38 @@ from Backend.dashboardfile import get_current_user
 from Backend.ai_prediction import predict
 from Backend.schemas import InputData
 import requests
+import random
 
 router = APIRouter(prefix="/api/emergency-response", tags=["Emergency Response"])
+
+# Smart Geocoding Registry for Indian High-Risk Regions
+GEO_REGISTRY = {
+    "sikkim": (27.33, 88.61),
+    "gangtok": (27.33, 88.61),
+    "darjeeling": (27.04, 88.26),
+    "guwahati": (26.14, 91.73),
+    "assam": (26.20, 92.93),
+    "uttarakhand": (30.06, 79.01),
+    "himachal": (31.10, 77.17),
+    "wayanad": (11.68, 76.13),
+    "kerala": (10.85, 76.27)
+}
+
+def get_weather_for_loc(lat: float, lon: float):
+    url = "https://api.open-meteo.com/v1/forecast"
+    params = {
+        "latitude": lat,
+        "longitude": lon,
+        "current": ["temperature_2m", "precipitation", "rain"],
+        "forecast_days": 1
+    }
+    try:
+        res = requests.get(url, params=params, timeout=2.0)
+        if res.status_code == 200:
+            return res.json().get("current", {})
+    except Exception:
+        pass
+    return {}
 
 @router.get("")
 @router.get("/")
@@ -12,178 +42,177 @@ def emergency_response(
     location: str = Query(None),
     current_user: dict = Depends(get_current_user)
 ):
-    # Determine target location from query param, user profile, or live IP geolocation
-    user_location = location or current_user.get("location")
-    user_city = "Local Sector"
-    user_region = "Monitored Zone"
+    try:
+        # Determine target location from query param, user profile, or live IP geolocation
+        raw_location = location or (current_user.get("location") if isinstance(current_user, dict) else None)
+        user_city = "Local Sector"
+        user_region = "Monitored Zone"
+        user_lat, user_lon = 27.33, 88.61 # Default
 
-    if user_location and user_location.strip():
-        parts = [p.strip() for p in user_location.split(",") if p.strip()]
-        user_city = parts[0]
-        user_region = parts[1] if len(parts) > 1 else "Regional Sector"
-    else:
-        try:
-            loc_data = requests.get("https://ipinfo.io", timeout=3).json()
-            user_city = loc_data.get("city") or "Local Sector"
-            user_region = loc_data.get("region") or "Regional Sector"
-        except Exception:
-            user_city = "Local Sector"
-            user_region = "Monitored Zone"
+        if raw_location and isinstance(raw_location, str) and raw_location.strip():
+            parts = [p.strip() for p in raw_location.split(",") if p.strip()]
 
-    # Run live ML prediction model on telemetry data
-    sample_telemetry = InputData(
-        Rainfall_mm=142.5,
-        Slope_Angle=42.0,
-        Soil_Saturation=88.0,
-        Vegetation_Cover=25.0,
-        Earthquake_Activity=3.2,
-        Proximity_to_Water=120.0,
-        Soil_Type_Gravel=0,
-        Soil_Type_Sand=1,
-        Soil_Type_Silt=0
-    )
-    
-    ml_result = predict(sample_telemetry)
-    ml_prob = ml_result.get("probability", 85.0)
+            # Check if these are raw coordinates (e.g. "27.33, 88.61")
+            try:
+                user_lat = float(parts[0])
+                user_lon = float(parts[1])
+                # Attempt to get a real city name via IP context even if coordinates are GPS
+                try:
+                    ip_data = requests.get("https://ipinfo.io", timeout=0.8).json()
+                    user_city = ip_data.get("city") or "Current Sector"
+                    user_region = ip_data.get("region") or "Verified Zone"
+                except Exception:
+                    user_city = "Monitored Sector"
+                    user_region = "Active Zone"
+            except (ValueError, IndexError):
+                user_city = parts[0]
+                user_region = parts[1] if len(parts) > 1 else "Regional Sector"
+                # Use Registry to find coordinates
+                clean_name = user_city.lower().strip()
+                for key, coords in GEO_REGISTRY.items():
+                    if key in clean_name:
+                        user_lat, user_lon = coords
+                        break
+        else:
+            try:
+                res = requests.get("https://ipinfo.io", timeout=1.0)
+                if res.status_code == 200:
+                    loc_data = res.json()
+                    user_city = loc_data.get("city") or "Local Sector"
+                    user_region = loc_data.get("region") or "Regional Sector"
+                    if "loc" in loc_data:
+                        parts = loc_data["loc"].split(",")
+                        user_lat, user_lon = float(parts[0]), float(parts[1])
+            except Exception:
+                pass
 
-    # Dynamic severity determination
-    if ml_prob >= 80:
-        severity_label = "Critical"
-    elif ml_prob >= 50:
-        severity_label = "High"
-    else:
-        severity_label = "Moderate"
+        # Fetch live weather for this specific location
+        weather = get_weather_for_loc(user_lat, user_lon)
+        live_rain = float(weather.get("rain") or weather.get("precipitation") or 0.0)
 
-    return {
-        "user_location": f"{user_city}, {user_region}",
-        "network_location": f"{user_city}, {user_region}",
-        "incidents": [
-            {
-                "id": "INC-001",
-                "name": f"{user_city} Northern Corridor Slope Watch",
-                "location": f"{user_city} Hill/Transit Perimeter, {user_region}",
-                "severity": min(100, int(ml_prob)),
-                "severityLabel": severity_label,
-                "status": "Active",
-                "detail": f"ML Risk Model probability: {ml_prob}%. Sensor network reports active saturation in {user_city} sector.",
-                "updatedAt": "10 minutes ago"
-            },
-            {
-                "id": "INC-002",
-                "name": f"{user_city} River Drainage Sector B",
-                "location": f"{user_city} Drainage & River Bank",
-                "severity": 72,
-                "severityLabel": "High",
-                "status": "Active",
-                "detail": f"Water runoff levels elevated in past 3 hours across {user_city} low-lying sectors.",
-                "updatedAt": "25 minutes ago"
-            },
-            {
-                "id": "INC-003",
-                "name": f"{user_city} Valley Stabilization Sector",
-                "location": f"{user_city} Outskirts, {user_region}",
-                "severity": 45,
-                "severityLabel": "Moderate",
-                "status": "Monitoring",
-                "detail": f"Geotechnical sensors monitoring soil and ground stability in {user_city}.",
-                "updatedAt": "1 hour ago"
-            }
-        ],
-        "infrastructure": [
-            {
-                "id": "INF-01",
-                "name": f"{user_city} Disaster Relief Shelter",
-                "location": f"{user_city} Central Complex, {user_region}",
-                "status": "Operational",
-                "statusDetail": "Capacity 400 persons, currently equipped with emergency relief kits"
-            },
-            {
-                "id": "INF-02",
-                "name": f"{user_city} Bridge & Transit Inspection Post",
-                "location": f"{user_city} Main Access Route",
-                "status": "Operational",
-                "statusDetail": "Structural integrity verified safe by regional monitoring team"
-            },
-            {
-                "id": "INF-03",
-                "name": f"{user_city} Primary Emergency Care Outpost",
-                "location": f"{user_city} Medical Sector Highway",
-                "status": "Operational",
-                "statusDetail": "Standby ambulance and trauma response units active 24/7"
-            }
-        ],
-        "villages": [
-            {
-                "id": "VIL-01",
-                "name": f"{user_city} Sector A",
-                "distance": "3.8 km",
-                "affected": 240,
-                "capacity": 600,
-                "needs": ["Rations", "Medical Support", "Temporary Tents"],
-                "progress": 65
-            },
-            {
-                "id": "VIL-02",
-                "name": f"{user_city} Peripheral Basin",
-                "distance": "8.5 km",
-                "affected": 130,
-                "capacity": 450,
-                "needs": ["Water Purification", "Blankets"],
-                "progress": 40
-            }
-        ],
-        "helpEntries": [
-            {
-                "id": "HELP-01",
-                "category": "Rescue",
-                "title": f"NDRF & SDRF Battalion - {user_city}",
-                "contact": "1078",
-                "availability": "Deployed - Active Response",
-                "location": f"{user_city} Base Camp",
-                "distance": "3.5 km"
-            },
-            {
-                "id": "HELP-02",
-                "category": "Medical",
-                "title": f"{user_city} State Emergency Health Unit",
-                "contact": "108",
-                "availability": "On Standby - 2 Ambulances",
-                "location": f"{user_city} Medical Station",
-                "distance": "5.2 km"
-            },
-            {
-                "id": "HELP-03",
-                "category": "Shelter",
-                "title": f"{user_city} District Relief Hub",
-                "contact": "1070",
-                "availability": "280 Beds Available",
-                "location": f"{user_city} Relief Complex",
-                "distance": "2.8 km"
-            }
-        ],
-        "resources": [
-            { "id": "RES-01", "name": "Rescue Boats & Rafts", "allocated": 14, "total": 20, "unit": "units" },
-            { "id": "RES-02", "name": "Medical Trauma Kits", "allocated": 150, "total": 200, "unit": "kits" },
-            { "id": "RES-03", "name": "Emergency Ration Packs", "allocated": 1200, "total": 1500, "unit": "packs" }
-        ],
-        "feed": [
-            {
-                "id": "FEED-01",
+        # Generate dynamic sectors based on location and ML model
+        incidents = []
+        sector_names = ["Slope Stability Watch", "Saturation Alert Zone", "Erosion Risk Perimeter"]
+
+        for i, s_name in enumerate(sector_names):
+            # Dynamic telemetry with variance
+            t_rain = max(live_rain * 1.5, 40.0 + (live_rain * random.uniform(1.0, 2.0)))
+            t_slope = 35.0 + (i * 10.0) + random.uniform(0, 5)
+            t_sat = min(98.0, 50.0 + (live_rain * 2.5) + (i * 5.0))
+
+            telemetry = InputData(
+                Rainfall_mm=t_rain,
+                Slope_Angle=t_slope,
+                Soil_Saturation=t_sat,
+                Vegetation_Cover=20.0 + (i * 10.0),
+                Earthquake_Activity=2.5 + (i * 0.5),
+                Proximity_to_Water=150.0 - (i * 30.0),
+                Soil_Type_Gravel=0,
+                Soil_Type_Sand=1 if i % 2 == 0 else 0,
+                Soil_Type_Silt=1 if i % 2 != 0 else 0
+            )
+
+            ml_res = predict(telemetry)
+            ml_prob = ml_res.get("probability", 50.0)
+
+            # Map ML risk level to strictly allowed frontend enum values: "Critical" | "High" | "Moderate"
+            raw_risk = ml_res.get("riskLevel", "Moderate")
+            risk_level = raw_risk if raw_risk in ["Critical", "High", "Moderate"] else "Moderate"
+
+            incidents.append({
+                "id": f"INC-00{i+1}",
+                "title": f"{user_city}: {s_name}",
+                "name": f"{user_city}: {s_name}",
+                "type": "Landslide",
+                "severity": int(ml_prob),
+                "severityLabel": risk_level,
+                "location": f"{user_city} Sector {chr(65+i)}",
+                "status": "Active" if ml_prob > 60 else "Monitoring",
+                "detail": f"Probability of hazard failure: {ml_prob}%. {ml_res.get('recommendation', '')}",
                 "time": "Just now",
-                "text": f"Live meteorological and sensor warning monitored for {user_city}, {user_region}. Telemetry updates active.",
-                "type": "alert"
-            },
-            {
-                "id": "FEED-02",
-                "time": "15 minutes ago",
-                "text": f"Quick Response Teams mobilized and on alert in {user_city} operational sector.",
-                "type": "dispatch"
-            },
-            {
-                "id": "FEED-03",
-                "time": "45 minutes ago",
-                "text": f"System sync complete. Sensor network reporting live telemetry from {user_city} stations.",
-                "type": "system"
-            }
-        ]
-    }
+                "updatedAt": "Just now"
+            })
+
+        return {
+            "user_location": f"{user_city}, {user_region}",
+            "network_location": f"{user_city}, {user_region}",
+            "incidents": incidents,
+            "infrastructure": [
+                {
+                    "id": "INF-01",
+                    "name": f"{user_city} Relief Shelter",
+                    "location": f"{user_city} Central",
+                    "status": "Operational",
+                    "statusDetail": "Ready for deployment"
+                },
+                {
+                    "id": "INF-02",
+                    "name": f"{user_city} Transit Post",
+                    "location": f"Main Highway, {user_city}",
+                    "status": "Operational",
+                    "statusDetail": "Clear for emergency vehicles"
+                }
+            ],
+            "villages": [
+                {
+                    "id": "VIL-01",
+                    "name": f"{user_city} Alpha Village",
+                    "distance": "2.4 km",
+                    "population": 450,
+                    "affected": int(450 * (live_rain / 100.0)) if live_rain > 50 else 0,
+                    "capacity": 800,
+                    "needs": ["Rations", "Medical Kit"] if live_rain > 30 else [],
+                    "progress": 100 if live_rain < 20 else 65,
+                    "riskLevel": "High" if live_rain > 40 else "Low",
+                    "evacuated": live_rain > 80
+                }
+            ],
+            "helpEntries": [
+                {
+                    "id": "HELP-01",
+                    "category": "Rescue",
+                    "title": f"NDRF Team {user_city}",
+                    "name": f"NDRF Team {user_city}",
+                    "type": "Rescue",
+                    "distance": "1.8 km",
+                    "contact": "1078",
+                    "availability": "On Standby",
+                    "available": True,
+                    "location": f"{user_city} Base"
+                }
+            ],
+            "resources": [
+                {
+                    "id": "RES-01",
+                    "name": "Emergency Kits",
+                    "type": "Medical",
+                    "quantity": 120,
+                    "allocated": 45,
+                    "total": 200,
+                    "unit": "packs",
+                    "location": user_city
+                }
+            ],
+            "feed": [
+                {
+                    "id": "FEED-01",
+                    "time": "Just now",
+                    "message": f"Localized environmental stability monitoring active for {user_city}.",
+                    "text": f"Localized environmental stability monitoring active for {user_city}.",
+                    "type": "system"
+                }
+            ]
+        }
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return {
+            "user_location": "Local Sector, Monitored Zone",
+            "network_location": "Local Sector, Monitored Zone",
+            "incidents": [],
+            "infrastructure": [],
+            "villages": [],
+            "helpEntries": [],
+            "resources": [],
+            "feed": []
+        }

@@ -36,6 +36,18 @@ export function SOSButton({
     return "Shares your live location with the nearest rescue team the moment you tap";
   };
 
+  const handlePress = () => {
+    // 1. Immediately open dialer (Universal method for Android/iOS WebViews)
+    const link = document.createElement("a");
+    link.href = "tel:1078";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // 2. Trigger background alert logic
+    if (onTap) onTap();
+  };
+
   return (
     <div className="flex flex-col items-center justify-center py-6 text-center">
       {/* Glow pulse wrapper */}
@@ -54,7 +66,7 @@ export function SOSButton({
         {/* Circular SOS Button */}
         <button
           type="button"
-          onClick={onTap}
+          onClick={handlePress}
           disabled={disabled || isLoading}
           className={`relative z-10 flex h-36 w-36 sm:h-40 sm:w-40 items-center justify-center rounded-full text-3xl sm:text-4xl font-extrabold tracking-wider text-white transition-all duration-300 active:scale-95 disabled:opacity-80 disabled:cursor-not-allowed ${
             isSuccess
